@@ -56,7 +56,7 @@ def WC1Dmain():
     
 def WC2Dmain():
     " Defining ODE Parameters "
-    L = 800; Lx = L; Ly = L; # Dimensions of mesh
+    L = 400; Lx = L; Ly = L; # Dimensions of mesh
     n = 50; nx = n; ny = n; # Spaces in mesh
     #dx = Lx/(nx-1); dy = Ly/(ny-1); # Spacing of mesh
     #xx = np.linspace(0,L,nx); # the x-component of the mesh 
@@ -66,7 +66,7 @@ def WC2Dmain():
     span_x = span; span_y = span; # Same thing but for the 2D Kernel
     dx_kern = 1; dy_kern = 1; # Spacing of Points in the Kernel
     SI = 8; TAU = 0.6; # Remaining ODE Parameters
-    dt = 0.1; tmore = 30; # Time Step and Initlal Integration Time
+    dt = 0.1; tmore = 10; # Time Step and Initlal Integration Time
     tshow = 1; # Amount of Time Data to Display
     kernType='Gaussian' # 'Gaussian' or 'Exponential'
     mode = 'wrap'; #'wrap' for periodic boundary, 'reflect' for reflecting boundary

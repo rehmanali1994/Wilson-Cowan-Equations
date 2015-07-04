@@ -310,6 +310,7 @@ class WilsonCowan2D:
     
     " Object Constructor "
     def __init__(self,pardict=None,filename=None):
+        self.nthPowOfTwo = 10; # Radial Scaling of Visual Hallucinogram
         if (filename is None) and (pardict is None):
             raise Exception('Must specify filename or pardict but not both')
         if filename is None:
@@ -332,7 +333,6 @@ class WilsonCowan2D:
             self.dt = pardict['dt']; self.WCSystem = None;
             self.kernType= pardict['kernType']; # 'Gaussian' or 'Exponential'
             self.mode = pardict['mode']; #'wrap' for periodic boundary, 'reflect' for reflecting boundary
-            self.nthPowOfTwo = 10; # Radial Scaling of Visual Hallucinogram
         elif pardict is None:
             " Retrieving saved state from file "
             xl = pd.ExcelFile(filename);
