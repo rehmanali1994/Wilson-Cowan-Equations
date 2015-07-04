@@ -5,8 +5,7 @@ Created on Sun Jun 28 18:36:00 2015
 @author: rehman
 """
 
-from WilsonCowan1D import * 
-from WilsonCowanFiPy2D import *
+from WilsonCowanSystems import * 
 # I'm importing numpy, scipy, matplotlib, pandas, visvis, etc. in addition to 
 # WilsonCowan1D (from WilsonCowan1D import WilsonCowan1D). The Wilson Cowan 1D 
 # above is really just the python filename (WilsonCowan1D.py) but not the class
