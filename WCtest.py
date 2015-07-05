@@ -56,7 +56,7 @@ def WC1Dmain():
     
 def WC2Dmain():
     " Defining ODE Parameters "
-    L = 400; Lx = L; Ly = L; # Dimensions of mesh
+    L = 100; Lx = L; Ly = L; # Dimensions of mesh
     n = 50; nx = n; ny = n; # Spaces in mesh
     #dx = Lx/(nx-1); dy = Ly/(ny-1); # Spacing of mesh
     #xx = np.linspace(0,L,nx); # the x-component of the mesh 
@@ -65,14 +65,14 @@ def WC2Dmain():
     span = 15; # Point to Left and Right of Central Maximum in 1D Kernel
     span_x = span; span_y = span; # Same thing but for the 2D Kernel
     dx_kern = 1; dy_kern = 1; # Spacing of Points in the Kernel
-    SI = 8; TAU = 0.6; # Remaining ODE Parameters
+    SI = 2; TAU = 0.6; # Remaining ODE Parameters
     dt = 0.1; tmore = 10; # Time Step and Initlal Integration Time
     tshow = 1; # Amount of Time Data to Display
     kernType='Gaussian' # 'Gaussian' or 'Exponential'
     mode = 'wrap'; #'wrap' for periodic boundary, 'reflect' for reflecting boundary
     
     " CONSTANTS: DO NOT CHANGE! "
-    BETA = 50; TE = 0.125; TI = 0.4; SE = 12;
+    BETA = 50; TE = 0.125; TI = 0.4; SE = 3;
     AEE = 1;  AIE = 1; AEI = 1.5; AII = 0.25;
     
     " Creating the WilsonCowan2D object "
@@ -86,12 +86,12 @@ def WC2Dmain():
     # For Synchronous Solution:
     #u0 = 0.4*np.ones((nx,ny)); v0 = 0.2*np.ones((nx,ny));
     # For Standing Wave (AKA: Bathroom Tiles in Random Directions):
-    #u0 = 0.2*np.random.randn(nx,ny)+0.41; 
-    #v0 = 0.2*np.random.randn(nx,ny)+0.21;
+    u0 = 0.05*np.random.randn(nx,ny)+0.41; 
+    v0 = 0.05*np.random.randn(nx,ny)+0.21;
     # For Directional Standing Wave Patterns (Theta Degrees Above X-Axis)
-    theta=np.pi/6; zFreq = 4; ZZ = XX*np.cos(theta)-YY*np.sin(theta);
-    u0 = 0.1*np.sin(2*np.pi*zFreq*ZZ/L)+0.4;
-    v0 = 0.1*np.sin(2*np.pi*zFreq*ZZ/L)+0.2; #(can change a sin into a cos)
+    #theta=np.pi/6; zFreq = 4; ZZ = XX*np.cos(theta)-YY*np.sin(theta);
+    #u0 = 0.1*np.sin(2*np.pi*zFreq*ZZ/L)+0.4;
+    #v0 = 0.1*np.sin(2*np.pi*zFreq*ZZ/L)+0.2; #(can change a sin into a cos)
     # For Line impulse along diagonol (requires nx = ny) THIS LEAVE A DIAGONOL SINUSOID:
     #u0 = 0.4+0.1*np.identity(nx); v0 = 0.2+0.1*np.identity(nx);
     # For X-Shaped Line Impulses along diagonals (requires nx = ny) ANGLE ZERO PATTERN:
@@ -108,5 +108,5 @@ def WC2Dmain():
     WC2D.interactiveIO_img_2D_mesh()
     WC2D.interactiveIO_img_3D()
 
-#WC1Dmain();
-WC2Dmain();
+WC1Dmain();
+#WC2Dmain();

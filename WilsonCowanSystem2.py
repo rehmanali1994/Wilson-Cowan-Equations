@@ -185,11 +185,11 @@ class WilsonCowan1D:
         plt.subplots_adjust(wspace = 0.4); plt.show();
         
     " Animated Plots of the Wilson Cowan Equations "
-    def animWilsonCowan1D(self, tdisp, twin, xmesh, ydisp, pltType, tspeed=(4,1e-9)):
+    def animWilsonCowan1D(self, tdisp, twin, xmesh, ydisp, polar, tspeed=(4,1e-9)):
         dt = np.mean(np.diff(tdisp)); dx = np.mean(np.diff(xmesh));
         udisp = ydisp[0:self.nx,:]; vdisp = ydisp[self.nx:(2*self.nx),:]; 
         tshift, tpause = tspeed; tindex = 0; tsamples = np.floor(twin/dt)
-        if pltType == 1:
+        if polar:
             plt.ion(); plt.figure(figsize=(16,6))
             while (tindex + tsamples) < tdisp.size:
                 plt.clf(); tvals = tdisp[tindex:(tindex+tsamples)];
@@ -207,7 +207,7 @@ class WilsonCowan1D:
                 ax1.set_xlabel('Radial Variable: Time [t]');
                 ax1.set_title('Inhibitory Firing [v]\n'); plt.colorbar(c2,ax=ax1);
                 tindex += tshift; plt.draw(); plt.pause(tpause); 
-        elif pltType == 0:
+        else:
             while (tindex + tsamples) < tdisp.size:
                 tvals = tdisp[tindex:(tindex+tsamples)];
                 uvals = udisp[:,tindex:(tindex+tsamples)];
@@ -228,15 +228,46 @@ class WilsonCowan1D:
                 plt.xlabel('Time [t]'); plt.ylabel('Spatial Variable [x]'); 
                 plt.subplots_adjust(hspace = 0.4); 
                 tindex += tshift; plt.draw(); plt.pause(tpause); plt.clf()
-        elif pltType == 2:
-            " COME UP WITH A WAY OF UPDATING THE CYLINDER USING VISVIS "
     # WC1D = WilsonCowan1D(filename='test.xlsx');
-    # WC1D.animWilsonCowan1D(WC1D.tvals,3,WC1D.xmesh,WC1D.yvals,0,tspeed=(4,1e-8))
-    # WC1D.animWilsonCowan1D(WC1D.tvals,3,WC1D.xmesh,WC1D.yvals,1,tspeed=(9,1e-9))
-    def animWilsonCowanVsX(self,xmesh,tdisp,ydisp):
-        return None;
-    def animWilsonCowanVsT(self,xmesh,tdisp,ydisp):
-        return None;
+    # WC1D.animWilsonCowan1D(WC1D.tvals,3,WC1D.xmesh,WC1D.yvals,False,tspeed=(4,1e-8))
+    # WC1D.animWilsonCowan1D(WC1D.tvals,3,WC1D.xmesh,WC1D.yvals,True,tspeed=(9,1e-9))
+    def animWilsonCowanVsX(self,xmesh,tdisp,ydisp,tspeed=(4,1e-9)):
+        tshift, tpause = tspeed; 
+        shiftIndices = np.arange(np.floor(tdisp.size/tshift))
+        for kk in shiftIndices:
+            tval = tdisp[kk*tshift]; yvals = ydisp[:,kk*tshift];
+            uvals = yvals[0:self.nx]; vvals = yvals[self.nx:(2*self.nx)];
+            plt.subplot(1,2,1); # For Firing Profiles Over Space
+            plt.plot(xmesh,uvals[:],'r',label='Excitatory Firing [u]');
+            plt.plot(xmesh,vvals[:],'b',label='Inhibitory Firing [v]');
+            plt.xlabel('Spatial Variable [x]'); plt.ylabel('Firing Activity'); 
+            plt.title('Spatial Firing Profiles at Time [t = '+str(tval)+']'); 
+            plt.legend(); plt.subplot(1,2,2); plt.plot(uvals[:],vvals[:],'k');
+            plt.xlabel('Excitatory Firing [u]'); plt.ylabel('Inhibitory Firing [v]');
+            plt.title('Spatial Firing Phase Diagram at Time [t = '+str(tval)+']'); 
+            plt.subplots_adjust(wspace = 0.4); 
+            plt.draw(); plt.pause(tpause); plt.clf();
+    # WC1D.animWilsonCowanVsX(WC1D.xmesh,WC1D.tvals,WC1D.yvals,tspeed=(4,1e-8));
+    def animWilsonCowanVsT(self,xmesh,tdisp,twin,ydisp,index,tspeed=(4,1e-9)):
+        tshift, tpause = tspeed; dt = np.mean(np.diff(tdisp)); 
+        tindex = 0; tsamples = np.floor(twin/dt)
+        udisp = ydisp[0:self.nx,:]; vdisp = ydisp[self.nx:(2*self.nx),:];
+        while (tindex + tsamples) < tdisp.size:
+            tvals = tdisp[tindex:(tindex+tsamples)];
+            uvals = udisp[:,tindex:(tindex+tsamples)];
+            vvals = vdisp[:,tindex:(tindex+tsamples)];
+            plt.subplot(1,2,1); # For Firing Profiles Over Space
+            plt.plot(tvals,uvals[index,:],'r',label='Excitatory Firing [u]');
+            plt.plot(tvals,vvals[index,:],'b',label='Inhibitory Firing [v]');
+            plt.xlabel('Time [t]'); plt.ylabel('Firing Activity'); 
+            plt.title('Spatial Firing Profiles'); plt.legend();
+            plt.subplot(1,2,2); plt.plot(uvals[index,:],vvals[index,:],'k');
+            plt.xlabel('Excitatory Firing [u]');
+            plt.ylabel('Inhibitory Firing [v]');
+            plt.title('Temporal Firing Phase Diagram'); 
+            plt.subplots_adjust(wspace = 0.4);
+            tindex += tshift; plt.draw(); plt.pause(tpause); plt.clf();
+    # WC1D.animWilsonCowanVsT(WC1D.xmesh,WC1D.tvals,3,WC1D.yvals,0,tspeed=(4,1e-8))
         
     " Saving the results to file "
     def saveCurrentState(self,filename):
@@ -364,7 +395,7 @@ class WilsonCowan2D:
     
     " Object Constructor "
     def __init__(self,pardict=None,filename=None):
-        self.nthPowOfTwo = 10; # Radial Scaling of Visual Hallucinogram
+        self.nthPowOfTwo = 2; # Radial Scaling of Visual Hallucinogram
         if (filename is None) and (pardict is None):
             raise Exception('Must specify filename or pardict but not both')
         if filename is None:

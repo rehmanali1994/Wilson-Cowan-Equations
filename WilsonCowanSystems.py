@@ -310,7 +310,7 @@ class WilsonCowan2D:
     
     " Object Constructor "
     def __init__(self,pardict=None,filename=None):
-        self.nthPowOfTwo = 10; # Radial Scaling of Visual Hallucinogram
+        self.nthPowOfTwo = 2; # Radial Scaling of Visual Hallucinogram
         if (filename is None) and (pardict is None):
             raise Exception('Must specify filename or pardict but not both')
         if filename is None:
@@ -496,10 +496,10 @@ class WilsonCowan2D:
             fig, axs = plt.subplots(1, 2, 
                 subplot_kw=dict(projection='polar'),figsize=(16,7))
             c1 = axs[0].contourf(a,eps,uvals_disp,100); 
-            axs[0].set_title('Visual Hallucination Due to \nExcitatory Firing [u]\n'); 
+            axs[0].set_title('Visual Hallucination Due to \nExcitatory Firing [u]\nat Time [t = '+str(tval)+']\n'); 
             plt.colorbar(c1,ax=axs[0]);
             c2 = axs[1].contourf(a,eps,vvals_disp,100); 
-            axs[1].set_title('Visual Hallucination Due to \nInhibitory Firing [v]\n'); 
+            axs[1].set_title('Visual Hallucination Due to \nInhibitory Firing [v]\nat Time [t = '+str(tval)+']\n'); 
             plt.colorbar(c2,ax=axs[1]); plt.show();
     def imgWilsonCowan1DvsT(self,tvals,yvals,info):
         axis, indx, pltType = info; 
