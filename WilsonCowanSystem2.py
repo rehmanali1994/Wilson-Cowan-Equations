@@ -19,7 +19,7 @@ import pandas as pd
 
 class WilsonCowan1D:
     'Organized Structure for 1D Wilson Cowan Equations Parameters and Results'
-    tshow_default = 10; tmore_default = 10;    
+    tshow_default = 10; tmore_default = 10; twin_default = 5;
     
     " Object Constructor "
     def __init__(self,pardict=None,filename=None):
@@ -79,9 +79,9 @@ class WilsonCowan1D:
         else: raise Exception('Must specify filename or pardict but not both');
             
     " Must Set Initial Conditions before Integration (WilsonCowanIntegrator) "    
-    def setInitConds(self,t0,u0,v0,tmore=tmore_default,tshow=tshow_default):
+    def setInitConds(self,t0,u0,v0,tmore=tmore_default,tshow=tshow_default,twin=twin_default):
         self.y0 = np.concatenate((u0,v0)); self.t0 = t0; 
-        self.tmore = tmore; self.tshow = tshow;
+        self.tmore = tmore; self.tshow = tshow; self.twin = twin
         
     " Defining the Wilson Cowan Equations "
     def WilsonCowanODE(self,t,y):
@@ -111,7 +111,7 @@ class WilsonCowan1D:
             self.yvals = np.column_stack((self.yvals,self.WCSystem.y));
         return self.tvals, self.yvals, self.WCSystem
 
-    " Plotting the Results of the Wilson Cowan Equations "
+    " Plotting/Animating the Results of the Wilson Cowan Equations "
     def imgWilsonCowan1D(self, tvals, xmesh, yvals, pltType):
         dt = np.mean(np.diff(tvals)); dx = np.mean(np.diff(xmesh));
         uvals = yvals[0:self.nx,:]; vvals = yvals[self.nx:(2*self.nx),:];
@@ -177,16 +177,14 @@ class WilsonCowan1D:
         plt.plot(tvals,uvals[index,:],'r',label='Excitatory Firing [u]');
         plt.plot(tvals,vvals[index,:],'b',label='Inhibitory Firing [v]');
         plt.xlabel('Time [t]'); plt.ylabel('Firing Activity'); 
-        plt.title('Spatial Firing Profiles'); plt.legend();
+        plt.title('Firing Profiles Over Time'); plt.legend();
         plt.subplot(1,2,2); plt.plot(uvals[index,:],vvals[index,:],'k');
         plt.xlabel('Excitatory Firing [u]');
         plt.ylabel('Inhibitory Firing [v]');
         plt.title('Temporal Firing Phase Diagram'); 
         plt.subplots_adjust(wspace = 0.4); plt.show();
-        
-    " Animated Plots of the Wilson Cowan Equations "
-    def animWilsonCowan1D(self, tdisp, twin, xmesh, ydisp, polar, tspeed=(4,1e-9)):
-        dt = np.mean(np.diff(tdisp)); dx = np.mean(np.diff(xmesh));
+    def animWilsonCowan1D(self, tdisp, twin, ydisp, polar, tspeed=(4,1e-9)):
+        dt = np.mean(np.diff(tdisp)); dx = np.mean(np.diff(self.xmesh));
         udisp = ydisp[0:self.nx,:]; vdisp = ydisp[self.nx:(2*self.nx),:]; 
         tshift, tpause = tspeed; tindex = 0; tsamples = np.floor(twin/dt)
         if polar:
@@ -196,7 +194,7 @@ class WilsonCowan1D:
                 uvals = udisp[:,tindex:(tindex+tsamples)];
                 vvals = vdisp[:,tindex:(tindex+tsamples)];
                 zeniths = tvals #+ np.max(tvals) - 2*np.min(tvals);
-                azimuths = np.radians(np.linspace(0,360,np.size(xmesh)));
+                azimuths = np.radians(np.linspace(0,360,np.size(self.xmesh)));
                 r, theta = np.meshgrid(zeniths, azimuths);
                 ax0 = plt.subplot(121,polar=True);
                 c1 = ax0.contourf(theta,r,uvals,100); 
@@ -209,65 +207,60 @@ class WilsonCowan1D:
                 tindex += tshift; plt.draw(); plt.pause(tpause); 
         else:
             while (tindex + tsamples) < tdisp.size:
-                tvals = tdisp[tindex:(tindex+tsamples)];
+                plt.clf(); tvals = tdisp[tindex:(tindex+tsamples)];
                 uvals = udisp[:,tindex:(tindex+tsamples)];
                 vvals = vdisp[:,tindex:(tindex+tsamples)];
                 plt.subplot(2,1,1); # For Excitatory Firing Plot
                 plt.imshow(uvals,interpolation='nearest',origin='lower',
                        extent=[np.min(tvals)-dt/2,np.max(tvals)+dt/2,
-                               np.min(xmesh)-dx/2,np.max(xmesh)+dx/2],
+                               np.min(self.xmesh)-dx/2,np.max(self.xmesh)+dx/2],
                                cmap = cm.jet, aspect = 'auto');
                 plt.title('Excitatory Firing [u]'); plt.colorbar();
                 plt.xlabel('Time [t]'); plt.ylabel('Spatial Variable [x]'); 
                 plt.subplot(2,1,2); # For Inhibitory FIring Plot
                 plt.imshow(vvals,interpolation='nearest',origin='lower',
                        extent=[np.min(tvals)-dt/2,np.max(tvals)+dt/2,
-                               np.min(xmesh)-dx/2,np.max(xmesh)+dx/2],
+                               np.min(self.xmesh)-dx/2,np.max(self.xmesh)+dx/2],
                                cmap = cm.jet, aspect = 'auto');
                 plt.title('Inhibitory Firing [v]'); plt.colorbar();
                 plt.xlabel('Time [t]'); plt.ylabel('Spatial Variable [x]'); 
                 plt.subplots_adjust(hspace = 0.4); 
-                tindex += tshift; plt.draw(); plt.pause(tpause); plt.clf()
-    # WC1D = WilsonCowan1D(filename='test.xlsx');
-    # WC1D.animWilsonCowan1D(WC1D.tvals,3,WC1D.xmesh,WC1D.yvals,False,tspeed=(4,1e-8))
-    # WC1D.animWilsonCowan1D(WC1D.tvals,3,WC1D.xmesh,WC1D.yvals,True,tspeed=(9,1e-9))
-    def animWilsonCowanVsX(self,xmesh,tdisp,ydisp,tspeed=(4,1e-9)):
+                tindex += tshift; plt.draw(); plt.pause(tpause); 
+    def animWilsonCowanVsX(self,tdisp,ydisp,tspeed=(4,1e-9)):
         tshift, tpause = tspeed; 
         shiftIndices = np.arange(np.floor(tdisp.size/tshift))
         for kk in shiftIndices:
-            tval = tdisp[kk*tshift]; yvals = ydisp[:,kk*tshift];
+            plt.clf(); tval = tdisp[kk*tshift]; yvals = ydisp[:,kk*tshift];
             uvals = yvals[0:self.nx]; vvals = yvals[self.nx:(2*self.nx)];
             plt.subplot(1,2,1); # For Firing Profiles Over Space
-            plt.plot(xmesh,uvals[:],'r',label='Excitatory Firing [u]');
-            plt.plot(xmesh,vvals[:],'b',label='Inhibitory Firing [v]');
+            plt.plot(self.xmesh,uvals[:],'r',label='Excitatory Firing [u]');
+            plt.plot(self.xmesh,vvals[:],'b',label='Inhibitory Firing [v]');
             plt.xlabel('Spatial Variable [x]'); plt.ylabel('Firing Activity'); 
             plt.title('Spatial Firing Profiles at Time [t = '+str(tval)+']'); 
             plt.legend(); plt.subplot(1,2,2); plt.plot(uvals[:],vvals[:],'k');
             plt.xlabel('Excitatory Firing [u]'); plt.ylabel('Inhibitory Firing [v]');
             plt.title('Spatial Firing Phase Diagram at Time [t = '+str(tval)+']'); 
             plt.subplots_adjust(wspace = 0.4); 
-            plt.draw(); plt.pause(tpause); plt.clf();
-    # WC1D.animWilsonCowanVsX(WC1D.xmesh,WC1D.tvals,WC1D.yvals,tspeed=(4,1e-8));
-    def animWilsonCowanVsT(self,xmesh,tdisp,twin,ydisp,index,tspeed=(4,1e-9)):
+            plt.draw(); plt.pause(tpause); 
+    def animWilsonCowanVsT(self,tdisp,twin,ydisp,index,tspeed=(4,1e-9)):
         tshift, tpause = tspeed; dt = np.mean(np.diff(tdisp)); 
         tindex = 0; tsamples = np.floor(twin/dt)
         udisp = ydisp[0:self.nx,:]; vdisp = ydisp[self.nx:(2*self.nx),:];
         while (tindex + tsamples) < tdisp.size:
-            tvals = tdisp[tindex:(tindex+tsamples)];
+            plt.clf(); tvals = tdisp[tindex:(tindex+tsamples)];
             uvals = udisp[:,tindex:(tindex+tsamples)];
             vvals = vdisp[:,tindex:(tindex+tsamples)];
             plt.subplot(1,2,1); # For Firing Profiles Over Space
             plt.plot(tvals,uvals[index,:],'r',label='Excitatory Firing [u]');
             plt.plot(tvals,vvals[index,:],'b',label='Inhibitory Firing [v]');
             plt.xlabel('Time [t]'); plt.ylabel('Firing Activity'); 
-            plt.title('Spatial Firing Profiles'); plt.legend();
+            plt.title('Firing Profiles Over Time'); plt.legend();
             plt.subplot(1,2,2); plt.plot(uvals[index,:],vvals[index,:],'k');
             plt.xlabel('Excitatory Firing [u]');
             plt.ylabel('Inhibitory Firing [v]');
             plt.title('Temporal Firing Phase Diagram'); 
             plt.subplots_adjust(wspace = 0.4);
-            tindex += tshift; plt.draw(); plt.pause(tpause); plt.clf();
-    # WC1D.animWilsonCowanVsT(WC1D.xmesh,WC1D.tvals,3,WC1D.yvals,0,tspeed=(4,1e-8))
+            tindex += tshift; plt.draw(); plt.pause(tpause); 
         
     " Saving the results to file "
     def saveCurrentState(self,filename):
@@ -353,8 +346,97 @@ class WilsonCowan1D:
                 self.saveCurrentState(filename);
             self.tmore = float(input("How much more integration time: "));
             self.tshow = float(input("How much time to display?: "));
-            index = int(input("Which neural element (0 to "+str(self.nx-1)+"): "));    
-
+            index = int(input("Which neural element (0 to "+str(self.nx-1)+"): "));
+    def interactiveIO_anim(self,polar=False,tshift=4):
+        tpause = 1e-9; tspeed = (tshift,tpause);
+        if self.WCSystem == None: 
+            self.WilsonCowanIntegrator();
+            locs = np.arange(self.tvals.size); 
+            locs = locs[self.tvals>(self.tvals[-1]-self.tshow)];
+            tdisp = self.tvals[locs]; ydisp = self.yvals[:,locs]; 
+            self.animWilsonCowan1D(tdisp,self.twin,ydisp,polar,tspeed=tspeed)
+        shouldSave = bool(int(input("Save Data? (1:YES or 0:NO): ")));
+        if shouldSave: 
+            filename = str(input("Excel file to save data to: "));
+            self.saveCurrentState(filename);
+        self.tmore = float(input("How much more integration time: ")); 
+        self.tshow = float(input("How much total time in animation?: "));
+        self.twin = float(input("How much display time?: "));
+        tshift = int(input("Time Shift Step for Animation (Integer >= 1): "));
+        polar = bool(int(input("Plot Type (0-Normal, 1-Polar): ")));
+        while(self.tshow>0):
+            self.WCIntegrateLast(); locs = np.arange(self.tvals.size); 
+            locs = locs[self.tvals>(self.tvals[-1]-self.tshow)];
+            tdisp = self.tvals[locs]; ydisp = self.yvals[:,locs]; tspeed = (tshift,tpause);
+            self.animWilsonCowan1D(tdisp,self.twin,ydisp,polar,tspeed=tspeed);
+            shouldSave = bool(int(input("Save Data? (1:YES or 0:NO): ")));
+            if shouldSave: 
+                filename = str(input("Excel file to save data to: "));
+                self.saveCurrentState(filename);
+            self.tmore = float(input("How much more integration time: "));
+            self.tshow = float(input("How much total time in animation?: "));
+            self.twin = float(input("How much display time?: "));
+            tshift = int(input("Time Shift Step for Animation (Integer >= 1): "));
+            polar = bool(int(input("Plot Type (0-Normal, 1-Polar): ")));
+    def interactiveIO_animX(self,tshift=4):
+        tpause = 1e-9; tspeed = (tshift,tpause);        
+        if self.WCSystem == None: 
+            self.WilsonCowanIntegrator();
+            locs = np.arange(self.tvals.size); 
+            locs = locs[self.tvals>(self.tvals[-1]-self.tshow)];
+            tdisp = self.tvals[locs]; ydisp = self.yvals[:,locs]; 
+            self.animWilsonCowanVsX(tdisp,ydisp,tspeed=tspeed); 
+        shouldSave = bool(int(input("Save Data? (1:YES or 0:NO): ")));
+        if shouldSave: 
+            filename = str(input("Excel file to save data to: "));
+            self.saveCurrentState(filename);
+        self.tmore = float(input("How much more integration time: "));
+        self.tshow = float(input("How much total time in animation?: "));
+        tshift = int(input("Time Shift Step for Animation (Integer >= 1): "));
+        while(self.tmore>0):
+            self.WCIntegrateLast(); tspeed = (tshift,tpause);
+            locs = np.arange(self.tvals.size); 
+            locs = locs[self.tvals>(self.tvals[-1]-self.tshow)];
+            tdisp = self.tvals[locs]; ydisp = self.yvals[:,locs]; 
+            self.animWilsonCowanVsX(tdisp,ydisp,tspeed=tspeed); 
+            shouldSave = bool(int(input("Save Data? (1:YES or 0:NO): ")));
+            if shouldSave: 
+                filename = str(input("Excel file to save data to: "));
+                self.saveCurrentState(filename);
+            self.tmore = float(input("How much more integration time: "));
+            self.tshow = float(input("How much total time in animation?: "));
+            tshift = int(input("Time Shift Step for Animation (Integer >= 1): "));
+    def interactiveIO_animT(self,index=0,tshift=4):
+        tpause = 1e-9; tspeed = (tshift,tpause);
+        if self.WCSystem == None: 
+            self.WilsonCowanIntegrator(); locs = np.arange(self.tvals.size); 
+            locs = locs[self.tvals>(self.tvals[-1]-self.tshow)];
+            tdisp = self.tvals[locs]; ydisp = self.yvals[:,locs];
+            self.animWilsonCowanVsT(tdisp,self.twin,ydisp,index,tspeed); 
+        shouldSave = bool(int(input("Save Data? (1:YES or 0:NO): ")));
+        if shouldSave: 
+            filename = str(input("Excel file to save data to: "));
+            self.saveCurrentState(filename);
+        self.tmore = float(input("How much more integration time: "));
+        self.tshow = float(input("How much total time in animation?: "));
+        self.twin = float(input("How much display time?: "));
+        tshift = int(input("Time Shift Step for Animation (Integer >= 1): "));
+        index = int(input("Which neural element (0 to "+str(self.nx-1)+"): ")); 
+        while(self.tshow>0):
+            self.WCIntegrateLast(); locs = np.arange(self.tvals.size); 
+            locs = locs[self.tvals>(self.tvals[-1]-self.tshow)];
+            tdisp = self.tvals[locs]; ydisp = self.yvals[:,locs];
+            self.animWilsonCowanVsT(tdisp,self.twin,ydisp,index,tspeed); 
+            shouldSave = bool(int(input("Save Data? (1:YES or 0:NO): ")));
+            if shouldSave: 
+                filename = str(input("Excel file to save data to: "));
+                self.saveCurrentState(filename);
+            self.tmore = float(input("How much more integration time: "));
+            self.tshow = float(input("How much total time in animation?: "));
+            self.twin = float(input("How much display time?: "));
+            tshift = int(input("Time Shift Step for Animation (Integer >= 1): "));
+            index = int(input("Which neural element (0 to "+str(self.nx-1)+"): "));
+            
     " Defining sigmoidal activation function "
     def f(self,x): return 1/(1+np.exp(-self.BETA*x))
     def df(self,x): return self.BETA*self.f(x)*(1-self.f(x))

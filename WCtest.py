@@ -5,7 +5,7 @@ Created on Sun Jun 28 18:36:00 2015
 @author: rehman
 """
 
-from WilsonCowanSystems import * 
+from WilsonCowanSystem2 import * 
 # I'm importing numpy, scipy, matplotlib, pandas, visvis, etc. in addition to 
 # WilsonCowan1D (from WilsonCowan1D import WilsonCowan1D). The Wilson Cowan 1D 
 # above is really just the python filename (WilsonCowan1D.py) but not the class
@@ -49,7 +49,10 @@ def WC1Dmain():
 #    u0 = 0.1*np.random.randn((nx))+0.41; 
 #    v0 = 0.1*np.random.randn((nx))+0.21;
     t0 = 0; WC1D.setInitConds(t0,u0,v0);
-    WC1D.interactiveIO_img();
+#   WC1D.interactiveIO_img();
+#    WC1D.interactiveIO_anim();
+#    WC1D.interactiveIO_animX();
+    WC1D.interactiveIO_animT();
 #    WC1D2 = WilsonCowan1D(filename='test.xlsx');
 #    print("JUST REOPENED FILE INTO NEW OBJECT")
 #    WC1D2.interactiveIO_img();
