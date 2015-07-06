@@ -243,8 +243,8 @@ class WilsonCowan1D:
             plt.subplots_adjust(wspace = 0.4); 
             plt.draw(); plt.pause(tpause); 
     def animWilsonCowanVsT(self,tdisp,twin,ydisp,index,tspeed=(4,1e-9)):
-        tshift, tpause = tspeed; dt = np.mean(np.diff(tdisp)); 
-        tindex = 0; tsamples = np.floor(twin/dt)
+        tshift, tpause = tspeed; 
+        tindex = 0; tsamples = np.floor(twin/self.dt)
         udisp = ydisp[0:self.nx,:]; vdisp = ydisp[self.nx:(2*self.nx),:];
         while (tindex + tsamples) < tdisp.size:
             plt.clf(); tvals = tdisp[tindex:(tindex+tsamples)];
@@ -473,7 +473,7 @@ class WilsonCowan1D:
     
 class WilsonCowan2D:
     'Organized Structure for 1D Wilson Cowan Equations Parameters and Results'
-    tshow_default = 10; tmore_default = 10;
+    tshow_default = 10; tmore_default = 10; twin_default = 5;
     
     " Object Constructor "
     def __init__(self,pardict=None,filename=None):
@@ -542,9 +542,9 @@ class WilsonCowan2D:
         else: raise Exception('Must specify filename or pardict but not both');
     
     " Must Set Initial Conditions before Integration (WilsonCowanIntegrator) "    
-    def setInitConds(self,t0,u0,v0,tmore=tmore_default,tshow=tshow_default):
+    def setInitConds(self,t0,u0,v0,tmore=tmore_default,tshow=tshow_default,twin=twin_default):
         uu0 = np.reshape(u0,self.nx*self.ny); vv0 = np.reshape(v0,self.nx*self.ny)
-        self.yy0 = np.concatenate((uu0,vv0)); self.t0 = t0; 
+        self.yy0 = np.concatenate((uu0,vv0)); self.t0 = t0; self.twin = twin
         self.tmore = tmore; self.tshow = tshow;
         
     " Defining the Wilson Cowan Equations "
@@ -587,14 +587,15 @@ class WilsonCowan2D:
         if video:
             uval_list = [kk for kk in np.swapaxes(np.swapaxes(uvals,0,2),1,2)];
             vval_list = [kk for kk in np.swapaxes(np.swapaxes(vvals,0,2),1,2)];
+            speedFactor = float(input('Speed-Up Factor: '));
             vv.subplot(121); ax1 = vv.gca(); 
-            vv.movieShow(uval_list,duration=self.dt,axesAdjust=True,axes=ax1);
+            vv.movieShow(uval_list,duration=self.dt/speedFactor,axesAdjust=True,axes=ax1);
             vv.colorbar(axes=ax1); ax1.daspect = (1,-1,1); ax1.axis.tickFontSize = 0;
             vv.xlabel('Space [x='+str(xrange[0])+'..'+str(xrange[1])+']',axes=ax1); 
             vv.ylabel('Space [y='+str(yrange[0])+'..'+str(yrange[1])+']',axes=ax1);
             vv.title('Excitatory Firing [u]',axes=ax1); vv.axis('tight',axes=ax1);
             vv.subplot(122); ax2 = vv.gca(); 
-            vv.movieShow(vval_list,duration=self.dt,axesAdjust=True,axes=ax2);
+            vv.movieShow(vval_list,duration=self.dt/speedFactor,axesAdjust=True,axes=ax2);
             vv.colorbar(axes=ax2); ax2.daspect = (1,-1,1); ax2.axis.tickFontSize = 0;
             vv.xlabel('Space [x='+str(xrange[0])+'..'+str(xrange[1])+']',axes=ax2); 
             vv.ylabel('Space [y='+str(yrange[0])+'..'+str(yrange[1])+']',axes=ax2);
@@ -763,18 +764,135 @@ class WilsonCowan2D:
         plt.plot(tvals,uvals,'r',label='Excitatory Firing [u]');
         plt.plot(tvals,vvals,'b',label='Inhibitory Firing [v]');
         plt.xlabel('Time [t]'); plt.ylabel('Firing Activity'); 
-        plt.title('Spatial Firing Profiles'); plt.legend();
+        plt.title('Firing Profiles Over Time'); plt.legend();
         plt.subplot(1,2,2); plt.plot(uvals,vvals,'k');
         plt.xlabel('Excitatory Firing [u]');
         plt.ylabel('Inhibitory Firing [v]');
         plt.title('Temporal Firing Phase Diagram'); 
         plt.subplots_adjust(wspace = 0.4); plt.show();
-    def animWilsonCowan2D(self):
-        return None;
-    def animWilsonCowan1DvsT(self):
-        return None;
-    def animWilsonCowanPltT(self):
-        return None;
+    def animWilsonCowan2D(self, tdisp, ydisp, polar, tspeed=(4,1e-9)):
+        udisp = ydisp[0:(self.nx*self.ny),:]; 
+        vdisp = ydisp[(self.nx*self.ny):(2*self.nx*self.ny),:];
+        udisp = np.reshape(udisp,(self.ny,self.nx,tdisp.size)); 
+        vdisp = np.reshape(vdisp,(self.ny,self.nx,tdisp.size));
+        tshift, tpause = tspeed; tindex = 0;
+        if polar:
+            eps_0 = 1; alpha = (self.Lx+self.dx)/(self.nthPowOfTwo*np.log(2));
+            XMesh_disp = np.concatenate((self.XMesh,self.XMesh[-1,:][np.newaxis,:]),axis=0);
+            eps = eps_0*np.exp(XMesh_disp/alpha); 
+            a = 2*np.pi*self.YMesh/(self.Ly+self.dy);
+            a = np.vstack((a,2*np.pi*np.ones(a.shape[1])));
+            plt.ion(); plt.figure(figsize=(16,7))
+            while tindex < tdisp.size:
+                plt.clf(); uvals = udisp[:,:,tindex]; vvals = vdisp[:,:,tindex]; 
+                uvals_disp = np.concatenate((uvals,uvals[0,:][np.newaxis,:]),axis=0);
+                vvals_disp = np.concatenate((vvals,vvals[0,:][np.newaxis,:]),axis=0);
+                ax0 = plt.subplot(121,polar=True); ax1 = plt.subplot(122,polar=True);
+                c1 = ax0.contourf(a,eps,uvals_disp,100); tval = tdisp[tindex];
+                ax0.set_title('Visual Hallucination Due to \nExcitatory Firing [u]\nat Time [t = '+str(tval)+']\n'); 
+                plt.colorbar(c1,ax=ax0); c2 = ax1.contourf(a,eps,vvals_disp,100); 
+                ax1.set_title('Visual Hallucination Due to \nInhibitory Firing [v]\nat Time [t = '+str(tval)+']\n'); 
+                plt.colorbar(c2,ax=ax1); plt.draw(); plt.pause(tpause); tindex += tshift;
+        else:
+            while tindex < tdisp.size:
+                plt.clf(); tval = tdisp[tindex]; plt.subplot(1,2,1); # For Excitatory Firing Plot
+                plt.imshow(udisp[:,:,tindex],interpolation='nearest',origin='lower',
+                       extent=[np.min(self.xmesh)-self.dx/2,np.max(self.xmesh)+self.dx/2,
+                               np.min(self.ymesh)-self.dy/2,np.max(self.ymesh)+self.dy/2],
+                               cmap = cm.jet, aspect = 'auto'); plt.colorbar();
+                plt.title('Excitatory Firing [u] at Time [t = '+str(tval)+']'); 
+                plt.xlabel('Spatial Variable [x]'); plt.ylabel('Spatial Variable [y]'); 
+                plt.subplot(1,2,2); # For Inhibitory Firing Plot
+                plt.imshow(vdisp[:,:,tindex],interpolation='nearest',origin='lower',
+                       extent=[np.min(self.xmesh)-self.dx/2,np.max(self.xmesh)+self.dx/2,
+                               np.min(self.ymesh)-self.dy/2,np.max(self.ymesh)+self.dy/2],
+                               cmap = cm.jet, aspect = 'auto'); plt.colorbar();
+                plt.title('Inhibitory Firing [v] at Time [t = '+str(tval)+']'); 
+                plt.xlabel('Spatial Variable [x]'); plt.ylabel('Spatial Variable [y]'); 
+                plt.subplots_adjust(wspace = 0.4); plt.draw(); plt.pause(tpause); tindex += tshift;
+    def animWilsonCowan1DvsT(self,tdisp,twin,ydisp,axis,indx,polar,tspeed=(4,1e-9)):
+        tshift, tpause = tspeed; tindex = 0; tsamples = np.floor(twin/self.dt)
+        if axis == 1: 
+            mesh = self.ymesh; diff = self.dy;
+            udisp = ydisp[0:self.ny,:]; 
+            vdisp = ydisp[self.ny:(2*self.ny),:];
+        elif axis == 0: 
+            mesh = self.xmesh; diff = self.dx;
+            udisp = ydisp[0:self.nx,:]; 
+            vdisp = ydisp[self.nx:(2*self.nx),:];
+        if polar: # Polar Plot
+            plt.ion(); plt.figure(figsize=(16,7))
+            while (tindex + tsamples) < tdisp.size:
+                plt.clf(); zeniths = tdisp[tindex:(tindex+tsamples)];
+                uvals = udisp[:,tindex:(tindex+tsamples)];
+                vvals = vdisp[:,tindex:(tindex+tsamples)];
+                azimuths = np.radians(np.linspace(0,360,np.size(mesh)));
+                r, theta = np.meshgrid(zeniths, azimuths); 
+                ax0 = plt.subplot(121,polar=True); ax1 = plt.subplot(122,polar=True);
+                c1 = ax0.contourf(theta,r,uvals,50); 
+                if axis == 1:
+                    ax0.set_xlabel('Radial Variable: Time [t]\nAngular Variable [y]');
+                    ax0.set_title('Excitatory Firing [u] at [x = '+str(indx)+']\n');
+                elif axis == 0:
+                    ax0.set_xlabel('Radial Variable: Time [t]\nAngular Variable [x]');
+                    ax0.set_title('Excitatory Firing [u] at [y = '+str(indx)+']\n');
+                plt.colorbar(c1,ax=ax0);
+                c2 = ax1.contourf(theta,r,vvals,50); 
+                if axis == 1:
+                    ax0.set_xlabel('Radial Variable: Time [t]\nAngular Variable [y]');
+                    ax0.set_title('Inhibitory Firing [v] at [x = '+str(indx)+']\n');
+                elif axis == 0:
+                    ax1.set_xlabel('Radial Variable: Time [t]\nAngular Variable [x]');
+                    ax1.set_title('Inhibitory Firing [v] at [y = '+str(indx)+']\n');
+                plt.colorbar(c2,ax=ax1); plt.draw(); plt.pause(tpause); tindex += tshift;
+        else: # Normal Plot
+            while (tindex + tsamples) < tdisp.size:
+                plt.clf(); tvals = tdisp[tindex:(tindex+tsamples)];
+                uvals = udisp[:,tindex:(tindex+tsamples)];
+                vvals = vdisp[:,tindex:(tindex+tsamples)];
+                plt.subplot(2,1,1); # For Excitatory Firing Profiles Over Space
+                plt.imshow(uvals,interpolation='nearest',origin='lower',
+                       extent=[np.min(tvals)-self.dt/2,np.max(tvals)+self.dt/2,
+                               np.min(mesh)-diff/2,np.max(mesh)+diff/2],
+                               cmap = cm.jet, aspect = 'auto'); 
+                plt.colorbar(); plt.xlabel('Time [t]'); 
+                if axis == 1: 
+                    plt.ylabel('Spatial Variable [y]'); 
+                    plt.title('Excitatory Firing [u] at [x = '+str(indx)+']'); 
+                elif axis == 0: 
+                    plt.ylabel('Spatial Variable [x]');
+                    plt.title('Excitatory Firing [u] at [y = '+str(indx)+']');
+                plt.subplot(2,1,2); # For Inhibitory Firing Profiles Over Space
+                plt.imshow(vvals,interpolation='nearest',origin='lower',
+                       extent=[np.min(tvals)-self.dt/2,np.max(tvals)+self.dt/2,
+                               np.min(mesh)-diff/2,np.max(mesh)+diff/2],
+                               cmap = cm.jet, aspect = 'auto'); 
+                plt.colorbar(); plt.xlabel('Time [t]'); 
+                if axis == 1: 
+                    plt.ylabel('Spatial Variable [y]'); 
+                    plt.title('Inhibitory Firing [v] at [x = '+str(indx)+']'); 
+                elif axis == 0: 
+                    plt.ylabel('Spatial Variable [x]');
+                    plt.title('Inhibitory Firing [v] at [y = '+str(indx)+']'); 
+                plt.subplots_adjust(hspace = 0.4); plt.draw(); 
+                plt.pause(tpause); tindex += tshift;
+    def animWilsonCowanPltT(self,tdisp,twin,udisp,vdisp,tspeed=(4,1e-9)):
+        tshift, tpause = tspeed; tindex = 0; tsamples = np.floor(twin/self.dt);
+        while (tindex + tsamples) < tdisp.size:
+            plt.clf(); tvals = tdisp[tindex:(tindex+tsamples)];
+            uvals = udisp[tindex:(tindex+tsamples)];
+            vvals = vdisp[tindex:(tindex+tsamples)];
+            plt.subplot(1,2,1); # For Firing Profiles Over Space
+            plt.plot(tvals,uvals,'r',label='Excitatory Firing [u]');
+            plt.plot(tvals,vvals,'b',label='Inhibitory Firing [v]');
+            plt.xlabel('Time [t]'); plt.ylabel('Firing Activity'); 
+            plt.title('Firing Profiles Over Time'); plt.legend();
+            plt.subplot(1,2,2); plt.plot(uvals,vvals,'k');
+            plt.xlabel('Excitatory Firing [u]');
+            plt.ylabel('Inhibitory Firing [v]');
+            plt.title('Temporal Firing Phase Diagram'); 
+            plt.subplots_adjust(wspace = 0.4); plt.draw(); 
+            plt.pause(tpause); tindex += tshift;
     
     " Saving the results to file "
     def saveCurrentState(self,filename):
@@ -957,13 +1075,142 @@ class WilsonCowan2D:
             shouldSave = bool(int(input("Save Data? (1:YES or 0:NO): ")));
             if shouldSave: 
                 filename = str(input("Excel file to save data to: "));
+                self.saveCurrentState(filename);   
+    def interactiveIO_anim_2D_mesh(self, polar=False, tshift=4):
+        tpause = 1e-9; tspeed = (tshift,tpause);
+        if self.WCSystem == None:
+            self.WilsonCowanIntegrator();
+            locs = np.arange(self.tvals.size);
+            locs = locs[self.tvals>(self.tvals[-1]-self.tshow)];
+            tdisp = self.tvals[locs]; ydisp = self.yvals[:,locs];
+            self.animWilsonCowan2D(tdisp, ydisp, polar, tspeed); 
+        self.tmore = float(input("How much more integration time: ")); 
+        self.tshow = float(input("How much time to display?: "));
+        tshift = int(input("Time Shift Step for Animation (Integer >= 1): "));
+        polar = bool(int(input('Polar Plot? (1:YES, 0:NO): ')));
+        cont= bool(int(input('Continue? (1:YES; 0:NO): ')));
+        shouldSave = bool(int(input("Save Data? (1:YES or 0:NO): ")));
+        if shouldSave: 
+            filename = str(input("Excel file to save data to: "));
+            self.saveCurrentState(filename);
+        while(cont):
+            self.WCIntegrateLast();
+            locs = np.arange(self.tvals.size); tspeed = (tshift,tpause);
+            locs = locs[self.tvals>(self.tvals[-1]-self.tshow)];
+            tdisp = self.tvals[locs]; ydisp = self.yvals[:,locs];
+            self.animWilsonCowan2D(tdisp, ydisp, polar, tspeed); 
+            self.tmore = float(input("How much more integration time: ")); 
+            self.tshow = float(input("How much time to display?: "));
+            tshift = int(input("Time Shift Step for Animation (Integer >= 1): "));
+            polar = bool(int(input('Polar Plot? (1:YES, 0:NO): ')));
+            cont= bool(int(input('Continue? (1:YES; 0:NO): ')));
+            shouldSave = bool(int(input("Save Data? (1:YES or 0:NO): ")));
+            if shouldSave: 
+                filename = str(input("Excel file to save data to: "));
                 self.saveCurrentState(filename);
-    def interactiveIO_anim_2D_mesh(self):
-        return None;
-    def interactiveIO_anim_vs_T(self):
-        return None;
-    def interactiveIO_anim_pltT(self):
-        return None;
+    def interactiveIO_anim_vs_T(self,axis=0,indx=0,polar=False,tshift=4): 
+        if self.WCSystem == None:             
+            self.WilsonCowanIntegrator(); tspeed = (tshift,1e-9);
+            yvals_mesh = np.reshape(self.yvals,(2*self.ny,self.nx,np.size(self.tvals)));
+            uvals_mesh = yvals_mesh[0:self.ny,:,:]; 
+            vvals_mesh = yvals_mesh[self.ny:(2*self.ny),:,:];
+            if axis == 0:
+                uvals_vs_t = uvals_mesh[indx,:,:]; 
+                vvals_vs_t = vvals_mesh[indx,:,:]; 
+            elif axis == 1: 
+                uvals_vs_t = uvals_mesh[:,indx,:]; 
+                vvals_vs_t = vvals_mesh[:,indx,:]; 
+            locs = np.arange(self.tvals.size); 
+            locs = locs[self.tvals>(self.tvals[-1]-self.tshow)];
+            udisp = uvals_vs_t[:,locs]; vdisp = vvals_vs_t[:,locs];
+            tdisp = self.tvals[locs]; ydisp = np.concatenate((udisp,vdisp))
+            self.animWilsonCowan1DvsT(tdisp,self.twin,ydisp,axis,indx,polar,tspeed=tspeed); 
+        self.tmore = float(input("How much more integration time: "));
+        self.tshow = float(input("How much total time in animation?: "));
+        self.twin = float(input("How much display time?: "));
+        tshift = int(input("Time Shift Step for Animation (Integer >= 1): "));
+        polar = bool(int(input("Plot Type (0-Normal, 1-Polar): ")));
+        axis = int(input('Y-Slice(0) or X-Slice(1)?: ')); tspeed = (tshift,1e-9);
+        if axis == 1:
+            indx = int(input("Which X-Slice (0 to "+str(self.nx-1)+"): ")); 
+        elif axis == 0:
+            indx = int(input("Which Y-Slice (0 to "+str(self.ny-1)+"): "));
+        shouldSave = bool(int(input("Save Data? (1:YES or 0:NO): ")));
+        if shouldSave: 
+            filename = str(input("Excel file to save data to: "));
+            self.saveCurrentState(filename);
+        while(self.tshow>0):
+            self.WCIntegrateLast();
+            yvals_mesh = np.reshape(self.yvals,(2*self.ny,self.nx,np.size(self.tvals)));
+            uvals_mesh = yvals_mesh[0:self.ny,:,:]; 
+            vvals_mesh = yvals_mesh[self.ny:(2*self.ny),:,:];
+            if axis == 0:
+                uvals_vs_t = uvals_mesh[indx,:,:]; 
+                vvals_vs_t = vvals_mesh[indx,:,:];
+            elif axis == 1: 
+                uvals_vs_t = uvals_mesh[:,indx,:]; 
+                vvals_vs_t = vvals_mesh[:,indx,:]; 
+            locs = np.arange(self.tvals.size); 
+            locs = locs[self.tvals>(self.tvals[-1]-self.tshow)];
+            udisp = uvals_vs_t[:,locs]; vdisp = vvals_vs_t[:,locs];
+            tdisp = self.tvals[locs]; ydisp = np.concatenate((udisp,vdisp))
+            self.animWilsonCowan1DvsT(tdisp,self.twin,ydisp,axis,indx,polar,tspeed=tspeed); 
+            self.tmore = float(input("How much more integration time: "));
+            self.tshow = float(input("How much total time in animation?: "));
+            self.twin = float(input("How much display time?: "));
+            tshift = int(input("Time Shift Step for Animation (Integer >= 1): "));
+            polar = bool(int(input("Plot Type (0-Normal, 1-Polar): ")));
+            axis = int(input('Y-Slice(0) or X-Slice(1)?: ')); tspeed = (tshift,1e-9);
+            if axis == 1:
+                indx = int(input("Which X-Slice (0 to "+str(self.nx-1)+"): ")); 
+            elif axis == 0:
+                indx = int(input("Which Y-Slice (0 to "+str(self.ny-1)+"): "));
+            shouldSave = bool(int(input("Save Data? (1:YES or 0:NO): ")));
+            if shouldSave: 
+                filename = str(input("Excel file to save data to: "));
+                self.saveCurrentState(filename);
+    # animWilsonCowanPltT(self,tdisp,twin,udisp,vdisp,tspeed=(4,1e-9))
+    def interactiveIO_anim_pltT(self,locIndx=(0,0),tshift=4):
+        if self.WCSystem == None: 
+            x_indx, y_indx = locIndx; self.WilsonCowanIntegrator();
+            yvals_mesh = np.reshape(self.yvals,(2*self.ny,self.nx,np.size(self.tvals)));
+            uvals_mesh = yvals_mesh[0:self.ny,:,:]; 
+            vvals_mesh = yvals_mesh[self.ny:(2*self.ny),:,:];
+            locs = np.arange(self.tvals.size); 
+            locs = locs[self.tvals>(self.tvals[-1]-self.tshow)];
+            uvals_disp = uvals_mesh[y_indx,x_indx,locs]; tdisp = self.tvals[locs];
+            vvals_disp = vvals_mesh[y_indx,x_indx,locs]; tspeed = (tshift,1e-9);
+            self.animWilsonCowanPltT(tdisp,self.twin,uvals_disp,vvals_disp,tspeed=tspeed); 
+        self.tmore = float(input("How much more integration time: "));
+        self.tshow = float(input("How much total time in animation?: "));
+        self.twin = float(input("How much display time?: "));
+        tshift = int(input("Time Shift Step for Animation (Integer >= 1): "));
+        x_indx = int(input("Which X-Slice (0 to "+str(self.nx-1)+"): ")); 
+        y_indx = int(input("Which Y-Slice (0 to "+str(self.ny-1)+"): "));
+        shouldSave = bool(int(input("Save Data? (1:YES or 0:NO): ")));
+        if shouldSave: 
+            filename = str(input("Excel file to save data to: "));
+            self.saveCurrentState(filename);
+        while(self.tshow>0):
+            self.WCIntegrateLast();
+            yvals_mesh = np.reshape(self.yvals,(2*self.ny,self.nx,np.size(self.tvals)));
+            uvals_mesh = yvals_mesh[0:self.ny,:,:]; 
+            vvals_mesh = yvals_mesh[self.ny:(2*self.ny),:,:];
+            locs = np.arange(self.tvals.size); 
+            locs = locs[self.tvals>(self.tvals[-1]-self.tshow)];
+            uvals_disp = uvals_mesh[y_indx,x_indx,locs]; tdisp = self.tvals[locs];
+            vvals_disp = vvals_mesh[y_indx,x_indx,locs]; tspeed = (tshift,1e-9);
+            self.animWilsonCowanPltT(tdisp,self.twin,uvals_disp,vvals_disp,tspeed=tspeed);  
+            self.tmore = float(input("How much more integration time: "));
+            self.tshow = float(input("How much total time in animation?: "));
+            self.twin = float(input("How much display time?: "));
+            tshift = int(input("Time Shift Step for Animation (Integer >= 1): "));
+            x_indx = int(input("Which X-Slice (0 to "+str(self.nx-1)+"): ")); 
+            y_indx = int(input("Which Y-Slice (0 to "+str(self.ny-1)+"): ")); 
+            shouldSave = bool(int(input("Save Data? (1:YES or 0:NO): ")));
+            if shouldSave: 
+                filename = str(input("Excel file to save data to: "));
+                self.saveCurrentState(filename); 
     
     " Defining sigmoidal activation function "
     def f(self,x): return 1/(1+np.exp(-self.BETA*x))
