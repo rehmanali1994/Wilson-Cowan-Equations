@@ -108,8 +108,10 @@ def WC2Dmain():
     #u0[np.round(ny/2),np.round(nx/2)] = 0.6;
     #v0[np.round(ny/2),np.round(nx/2)] = 0.1;
     t0 = 0; WC2D.setInitConds(t0,u0,v0,tmore=tmore,tshow=tshow);
+    print('2D Plotting Coming Up ...')
     WC2D.interactiveIO_img_2D_mesh()
+    print('3D Plotting/Animation Coming Up ...')
     WC2D.interactiveIO_img_3D()
 
-WC1Dmain();
-#WC2Dmain();
+#WC1Dmain();
+WC2Dmain();

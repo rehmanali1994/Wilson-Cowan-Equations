@@ -575,8 +575,8 @@ class WilsonCowan2D:
             self.yvals = np.column_stack((self.yvals,self.WCSystem.y));
         return self.tvals, self.yvals, self.WCSystem
     
-    " Plotting the Results of the Wilson Cowan Equations "
-    def imgWilsonCowan3D(self,tvals,yvals,video=False):
+    " Plotting/Animating the Results of the Wilson Cowan Equations "
+    def imgWilsonCowan3D(self,tvals,yvals,video):
         uvals = yvals[0:(self.nx*self.ny),:]; 
         vvals = yvals[(self.nx*self.ny):(2*self.nx*self.ny),:]
         uvals = np.reshape(uvals,(self.ny,self.nx,tvals.size)); 
@@ -585,10 +585,20 @@ class WilsonCowan2D:
         yrange = (np.min(self.ymesh),np.max(self.ymesh));
         trange = (np.min(tvals),np.max(tvals));    
         if video:
-            # ADD ANIMATION/VIDEO CODE HERE
-            # OPTION 1: movieShow in visvis
-            # OPTION 2: animation by matplotlib
-            return 0; 
+            uval_list = [kk for kk in np.swapaxes(np.swapaxes(uvals,0,2),1,2)];
+            vval_list = [kk for kk in np.swapaxes(np.swapaxes(vvals,0,2),1,2)];
+            vv.subplot(121); ax1 = vv.gca(); 
+            vv.movieShow(uval_list,duration=self.dt,axesAdjust=True,axes=ax1);
+            vv.colorbar(axes=ax1); ax1.daspect = (1,-1,1); ax1.axis.tickFontSize = 0;
+            vv.xlabel('Space [x='+str(xrange[0])+'..'+str(xrange[1])+']',axes=ax1); 
+            vv.ylabel('Space [y='+str(yrange[0])+'..'+str(yrange[1])+']',axes=ax1);
+            vv.title('Excitatory Firing [u]',axes=ax1); vv.axis('tight',axes=ax1);
+            vv.subplot(122); ax2 = vv.gca(); 
+            vv.movieShow(vval_list,duration=self.dt,axesAdjust=True,axes=ax2);
+            vv.colorbar(axes=ax2); ax2.daspect = (1,-1,1); ax2.axis.tickFontSize = 0;
+            vv.xlabel('Space [x='+str(xrange[0])+'..'+str(xrange[1])+']',axes=ax2); 
+            vv.ylabel('Space [y='+str(yrange[0])+'..'+str(yrange[1])+']',axes=ax2);
+            vv.title('Inhibitory Firing [v]',axes=ax2); vv.axis('tight',axes=ax2); 
         else:
             ax1 = vv.subplot(121); ax2 = vv.subplot(122);
             ax1.axis.tickFontSize = 0; ax2.axis.tickFontSize = 0;
@@ -759,6 +769,12 @@ class WilsonCowan2D:
         plt.ylabel('Inhibitory Firing [v]');
         plt.title('Temporal Firing Phase Diagram'); 
         plt.subplots_adjust(wspace = 0.4); plt.show();
+    def animWilsonCowan2D(self):
+        return None;
+    def animWilsonCowan1DvsT(self):
+        return None;
+    def animWilsonCowanPltT(self):
+        return None;
     
     " Saving the results to file "
     def saveCurrentState(self,filename):
@@ -792,13 +808,15 @@ class WilsonCowan2D:
     " Interactive real-time plotting by I/O dialog  "
     def interactiveIO_img_3D(self): 
         if self.WCSystem == None: 
+            video = bool(int(input('Video? (1:YES; 0:NO): ')));
             self.WilsonCowanIntegrator();
             locs = np.arange(self.tvals.size); 
             locs = locs[self.tvals>(self.tvals[-1]-self.tshow)];
             tdisp = self.tvals[locs]; ydisp = self.yvals[:,locs];
-            self.imgWilsonCowan3D(tdisp, ydisp);
+            self.imgWilsonCowan3D(tdisp, ydisp, video);
         self.tmore = float(input("How much more integration time: ")); 
         self.tshow = float(input("How much time to display?: "));
+        video = bool(int(input('Video? (1:YES; 0:NO): ')));
         cont= bool(int(input('Continue? (1:YES; 0:NO): ')));
         shouldSave = bool(int(input("Save Data? (1:YES or 0:NO): ")));
         if shouldSave: 
@@ -808,9 +826,10 @@ class WilsonCowan2D:
             self.WCIntegrateLast(); locs = np.arange(self.tvals.size); 
             locs = locs[self.tvals>(self.tvals[-1]-self.tshow)];
             tdisp = self.tvals[locs]; ydisp = self.yvals[:,locs];
-            self.imgWilsonCowan3D(tdisp, ydisp);
+            self.imgWilsonCowan3D(tdisp, ydisp, video);
             self.tmore = float(input("How much more integration time: ")); 
             self.tshow = float(input("How much time to display?: "));
+            video = bool(int(input('Video? (1:YES; 0:NO): ')));
             cont= bool(int(input('Continue? (1:YES; 0:NO): ')));
             shouldSave = bool(int(input("Save Data? (1:YES or 0:NO): ")));
             if shouldSave: 
@@ -939,6 +958,12 @@ class WilsonCowan2D:
             if shouldSave: 
                 filename = str(input("Excel file to save data to: "));
                 self.saveCurrentState(filename);
+    def interactiveIO_anim_2D_mesh(self):
+        return None;
+    def interactiveIO_anim_vs_T(self):
+        return None;
+    def interactiveIO_anim_pltT(self):
+        return None;
     
     " Defining sigmoidal activation function "
     def f(self,x): return 1/(1+np.exp(-self.BETA*x))
@@ -1001,7 +1026,7 @@ class WilsonCowan2D:
 """ THE REST OF THIS FILE IS JUST A SCRIPT TO TEST THE CLASS-LEVEL
 IMPLEMENTATIONS OF MY ALGORITHMS. ANYTHING BELOW THIS POINT ONLY 
 SERVES AS EXAMPLE CODE AND NOTHING ELSE. EVERYTHING ABOVE THIS POINT 
-IS SELF-SUFFICIENT CODE WITH MAY BE IMPORTED INTO ANOTHER PYTHON FILE"""
+IS SELF-SUFFICIENT CODE WHiCH MAY BE IMPORTED INTO ANOTHER PYTHON FILE"""
         
 " FIX CLKWISE/CTRCLKWISE PROBLEM IN 1D POLAR PLOTS "
 
