@@ -1225,7 +1225,7 @@ class WilsonCowan2D:
         if self.kernType == 'Exponential':
             return (1/(2*np.pi*sigma**2))*np.exp(-np.sqrt(X**2+Y**2)/sigma)*dx*dy;
         if self.kernType == 'Gaussian':
-            return (1/sigma)*np.exp(-np.pi*(X**2+Y**2)/(sigma**2))*dx*dy;
+            return (1/(sigma**2))*np.exp(-np.pi*(X**2+Y**2)/(sigma**2))*dx*dy;
         
     " Various Fourier Transforms of the above kernel "
     def freqz2(self,hh,ww_cols,ww_rows):
@@ -1253,7 +1253,7 @@ class WilsonCowan2D:
         if self.kernType == 'Exponential':
             return 1/((1+(sig**2)*(ww_x**2+ww_y**2))**(3/2));
         if self.kernType == 'Gaussian':
-            return sig*np.exp(-(sig**2)*(ww_x**2 + ww_y**2)/(4*np.pi));  
+            return np.exp(-(sig**2)*(ww_x**2 + ww_y**2)/(4*np.pi));  
     def compareFTs(self,SI,LL,nn,numFTpts,span,cycle):
         ww, kerFT, ker, diff = self.kernFT(SI,LL,nn,numFTpts,span,cycle);
         kerFTanalytical = self.kernAnalyticFT(SI,ww); 
