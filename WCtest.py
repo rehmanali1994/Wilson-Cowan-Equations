@@ -12,7 +12,7 @@ from WilsonCowanSystem2 import *
 
 def WC1Dmain():
     " CONSTANTS: DO NOT CHANGE! "
-    BETA = 50; TE = 0.05; TI = 0.4; SE = 12; #TE=0.125
+    BETA = 15; TE = 0.25; TI = 0.55; SE = 12; #TE=0.125
     AEE = 1;  AIE = 1; AEI = 1.5; AII = 0.25;
     
     " Defining ODE Parameters "
@@ -22,10 +22,10 @@ def WC1Dmain():
     xx = np.linspace(0,L,nx); # the mesh itself
     span = 60; # Point to Left and Right of Central Maximum in Kernel
     dx_kern = 1; # Spacing of Points in the Kernel
-    SI = 10.8; TAU = 0.7; # Remaining ODE Parameters SI=8; TAU=0.6
+    SI = 12; TAU = 0.63; # Remaining ODE Parameters SI=8; TAU=0.6
     dt = 0.025; tmore = 10; # Time Step and Initlal Integration Time
     tshow = 10; # Amount of Time Data to Display
-    kernType='Exponential' # 'Gaussian' or 'Exponential'
+    kernType='Gaussian' # 'Gaussian' or 'Exponential'
     mode = 'wrap'; #'wrap' for periodic boundary, 'reflect' for reflecting boundary
     
     " Creating the WilsonCowan1D object "
@@ -43,13 +43,13 @@ def WC1Dmain():
 #    u0 = 0.01*np.random.randn((nx))+0.1*np.sin(2*np.pi*xx/L)+0.4; 
 #    v0 = 0.01*np.random.randn((nx))+0.1*np.cos(2*np.pi*xx/L)+0.2;
     # For Travelling Wave in Opposite Direction:
-    u0 = 0.01*np.random.randn((nx))+0.1*np.cos(2*np.pi*xx/L)+0.4; 
-    v0 = 0.01*np.random.randn((nx))+0.1*np.sin(2*np.pi*xx/L)+0.2;
+    #u0 = 0.01*np.random.randn((nx))+0.1*np.cos(2*np.pi*xx/L)+0.4; 
+    #v0 = 0.01*np.random.randn((nx))+0.1*np.sin(2*np.pi*xx/L)+0.2;
     # For Standing Wave (AKA: Honeycomb)
-#    u0 = 0.1*np.random.randn((nx))+0.41; 
-#    v0 = 0.1*np.random.randn((nx))+0.21;
-    t0 = 0; WC1D.setInitConds(t0,u0,v0);
-#    WC1D.interactiveIO_img();
+    u0 = 0.1*np.random.randn((nx))+0.41; 
+    v0 = 0.1*np.random.randn((nx))+0.21;
+    t0 = 0; WC1D.setInitConds(t0,u0,v0,tmore=tmore,tshow=tshow);
+    WC1D.interactiveIO_img();
 #    WC1D.interactiveIO_anim();
 #    WC1D.interactiveIO_animX();
 #    WC1D.interactiveIO_animT();
@@ -59,7 +59,7 @@ def WC1Dmain():
     
 def WC2Dmain():
     " Defining ODE Parameters "
-    L = 100; Lx = L; Ly = L; # Dimensions of mesh
+    L = 50; Lx = L; Ly = L; # Dimensions of mesh
     n = 50; nx = n; ny = n; # Spaces in mesh
     #dx = Lx/(nx-1); dy = Ly/(ny-1); # Spacing of mesh
     #xx = np.linspace(0,L,nx); # the x-component of the mesh 
@@ -68,9 +68,9 @@ def WC2Dmain():
     span = 15; # Point to Left and Right of Central Maximum in 1D Kernel
     span_x = span; span_y = span; # Same thing but for the 2D Kernel
     dx_kern = 1; dy_kern = 1; # Spacing of Points in the Kernel
-    SI = 2; TAU = 0.6; # Remaining ODE Parameters
+    SI = 2; TAU = 0.43; # Remaining ODE Parameters
     dt = 0.1; tmore = 10; # Time Step and Initlal Integration Time
-    tshow = 1; # Amount of Time Data to Display
+    tshow = 10; # Amount of Time Data to Display
     kernType='Gaussian' # 'Gaussian' or 'Exponential'
     mode = 'wrap'; #'wrap' for periodic boundary, 'reflect' for reflecting boundary
     
@@ -109,9 +109,9 @@ def WC2Dmain():
     #v0[np.round(ny/2),np.round(nx/2)] = 0.1;
     t0 = 0; WC2D.setInitConds(t0,u0,v0,tmore=tmore,tshow=tshow);
     #print('2D Plotting Coming Up ...')
-    WC2D.interactiveIO_img_2D_mesh()
+    #WC2D.interactiveIO_img_2D_mesh()
     #print('3D Plotting/Animation Coming Up ...')
-    #WC2D.interactiveIO_img_3D()
+    WC2D.interactiveIO_img_3D()
     #WC2D.interactiveIO_anim_2D_mesh();
     #WC2D.interactiveIO_anim_pltT();
     #WC2D.interactiveIO_anim_vs_T();
