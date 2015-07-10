@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat Jul  4 18:35:58 2015
+Created on Thu Jul  9 21:56:37 2015
 
 @author: rehmanali
 """
@@ -8,7 +8,6 @@ Created on Sat Jul  4 18:35:58 2015
 from matplotlib.colors import colorConverter, Normalize
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.ndimage import convolve as conv
-from scipy.signal import fftconvolve as fftconv
 from scipy import signal
 from scipy.integrate import ode
 import matplotlib.pyplot as plt
@@ -18,7 +17,7 @@ import numpy as np
 import pandas as pd
 
 
-class WilsonCowan1D:
+class WilsonCowan1D_FFT:
     'Organized Structure for 1D Wilson Cowan Equations Parameters and Results'
     tshow_default = 10; tmore_default = 10; twin_default = 5;
     
@@ -35,7 +34,7 @@ class WilsonCowan1D:
     
             " Defining Other ODE Parameters "
             self.L = pardict['L']; # Length of mesh
-            self.nx = pardict['nx']; # Spaces in mesh
+            self.nx = 2*pardict['span']+1; # Spaces in mesh
             self.dx = self.L/(self.nx-1); # Spacing of mesh
             self.xmesh = np.linspace(0,self.L,self.nx); # the mesh itself
             self.span = pardict['span']; # Point to Left and Right of Central Maximum in Kernel
@@ -84,15 +83,15 @@ class WilsonCowan1D:
         self.y0 = np.concatenate((u0,v0)); self.t0 = t0; 
         self.tmore = tmore; self.tshow = tshow; self.twin = twin
         
-    " Defining the Wilson Cowan Equations "
+    " Defining the Wilson Cowan Equations "                
     def WilsonCowanODE(self,t,y):
         u = y[0:self.nx]; v = y[self.nx:(2*self.nx)];
         kerE = self.kern(self.SE,self.span,self.dx_kern); 
         kerI = self.kern(self.SI,self.span,self.dx_kern);
-        Lu = self.AEE*conv(u,kerE,mode=self.mode)-  \
-            self.AEI*conv(v,kerI,mode=self.mode)-self.TE;
-        Lv = self.AIE*conv(u,kerE,mode=self.mode)-  \
-            self.AII*conv(v,kerI,mode=self.mode)-self.TI;
+        Lu = self.AEE*self.fft1Dconv(u,kerE,mode=self.mode)-  \
+            self.AEI*self.fft1Dconv(v,kerI,mode=self.mode)-self.TE;
+        Lv = self.AIE*self.fft1Dconv(u,kerE,mode=self.mode)-  \
+            self.AII*self.fft1Dconv(v,kerI,mode=self.mode)-self.TI;
         du = -u + self.f(Lu); dv = (-v + self.f(Lv))/(self.TAU);
         return np.concatenate((du,dv));    
     def WilsonCowanIntegrator(self):
@@ -451,6 +450,16 @@ class WilsonCowan1D:
             return (1/(2*sigma))*np.exp(-np.abs(x)/sigma)*dx;
         
     " Various Fourier Transforms of the above kernel "
+    def fft1Dconv(self,x,kern,mode):
+        if mode == 'wrap':
+            raw_conv = np.fft.ifftn(np.fft.fftn(x)*np.fft.fftn(kern));
+            return np.real(np.roll(np.fft.fftshift(raw_conv),1));
+        if mode == 'reflect':
+            x_withreflects = np.concatenate((x[::-1],x,x[::-1]));
+            kern_zeropadding = np.zeros(kern.size);
+            kern_zeropads = np.concatenate((kern_zeropadding,kern,kern_zeropadding));
+            raw_conv = self.fft1Dconv(x_withreflects,kern_zeropads,'wrap');
+            return raw_conv[kern.size:(2*kern.size)];
     def kernFT(self,sig,L,nx,span,cycles):
         dx = L/(nx-1); fs = 1/dx; # Spacial Sampling
         numFTpts = 1000; numFTcycles = cycles; # For Fourier Transform of Spatial Mesh
@@ -472,7 +481,7 @@ class WilsonCowan1D:
     # WC1D.compareFTs(0.1,2*np.pi,501,25,3)
     # WC1D.compareFTs(0.1,2*np.pi,400,60,2)
     
-class WilsonCowan2D:
+class WilsonCowan2D_FFT:
     'Organized Structure for 1D Wilson Cowan Equations Parameters and Results'
     tshow_default = 10; tmore_default = 10; twin_default = 5;
     
@@ -490,7 +499,8 @@ class WilsonCowan2D:
     
             " Defining Other ODE Parameters "
             self.Lx = pardict['Lx']; self.Ly = pardict['Ly'] # Length of mesh
-            self.nx = pardict['nx']; self.ny = pardict['ny'] # Spaces in mesh
+            self.nx = 2*pardict['span_x'] + 1; # Spaces in X-mesh
+            self.ny = 2*pardict['span_y'] + 1; # Spaces in Y-mesh
             self.dx = self.Lx/(self.nx-1); self.dy = self.Ly/(self.ny-1) # Spacing of mesh
             self.xmesh = np.linspace(0,self.Lx,self.nx); 
             self.ymesh = np.linspace(0,self.Ly,self.ny);
@@ -562,8 +572,10 @@ class WilsonCowan2D:
         U = np.reshape(u,(self.ny,self.nx)); V = np.reshape(v,(self.ny,self.nx));
         kerE = self.kern(self.SE,(self.span_x,self.span_y),(self.dx_kern,self.dy_kern)); 
         kerI = self.kern(self.SI,(self.span_x,self.span_y),(self.dx_kern,self.dy_kern)); 
-        Lu = self.AEE*conv(U,kerE,mode=self.mode)-self.AEI*conv(V,kerI,mode=self.mode)-self.TE;
-        Lv = self.AIE*conv(U,kerE,mode=self.mode)-self.AII*conv(V,kerI,mode=self.mode)-self.TI;
+        Lu = self.AEE*self.fft2Dconv(U,kerE,mode=self.mode)- \
+            self.AEI*self.fft2Dconv(V,kerI,mode=self.mode)-self.TE;
+        Lv = self.AIE*self.fft2Dconv(U,kerE,mode=self.mode)- \
+            self.AII*self.fft2Dconv(V,kerI,mode=self.mode)-self.TI;
         dU = -U + self.f(Lu); dV = (-V + self.f(Lv))/self.TAU;
         du = np.reshape(dU,self.ny*self.nx); dv = np.reshape(dV,self.ny*self.nx);
         return np.concatenate((du,dv));
@@ -1237,6 +1249,22 @@ class WilsonCowan2D:
             return (1/(sigma**2))*np.exp(-np.pi*(X**2+Y**2)/(sigma**2))*dx*dy;
         
     " Various Fourier Transforms of the above kernel "
+    def fft2Dconv(self,x,kern,mode):
+        if mode == 'wrap':
+            raw_conv = np.fft.ifftn(np.fft.fftn(x)*np.fft.fftn(kern));
+            conv_shifted = np.real(np.fft.fftshift(raw_conv));
+            return np.roll(np.roll(conv_shifted,1,axis=0),1,axis=1);
+        if mode == 'reflect':
+            x_flipedLR = np.fliplr(x);
+            x_concatLR = np.concatenate((x_flipedLR,x,x_flipedLR),axis=1);
+            x_flipedUD = np.flipud(x_concatLR);
+            x_withreflects = np.concatenate((x_flipedUD,x_concatLR,x_flipedUD));
+            zeropadsLR = np.zeros(kern.shape);
+            kern_zeropadsLR = np.concatenate((zeropadsLR,kern,zeropadsLR),axis=1);
+            zeropadsUD = np.zeros(kern_zeropadsLR.shape);
+            kern_zeropads = np.concatenate((zeropadsUD,kern_zeropadsLR,zeropadsUD));
+            raw_conv = self.fft2Dconv(x_withreflects,kern_zeropads,'wrap');
+            return raw_conv[kern.shape[0]:(2*kern.shape[0]),kern.shape[1]:(2*kern.shape[1])];
     def freqz2(self,hh,ww_cols,ww_rows):
         kk_rows = np.arange(np.shape(hh)[0]); kk_cols = np.arange(np.shape(hh)[1]);
         KK_rows = np.matrix(kk_rows); KK_cols = np.transpose(np.matrix(kk_cols));
@@ -1303,6 +1331,4 @@ IS SELF-SUFFICIENT CODE WHiCH MAY BE IMPORTED INTO ANOTHER PYTHON FILE"""
 #    w, h = signal.freqz(b,worN=ww)
 #    WW = np.matrix(ww); KK = np.matrix(kk); KK = np.transpose(KK);
 #    frqz_indx = KK*WW; frqz_mtx = np.matrix(np.exp(-1j*np.array(frqz_indx)));
-#    HH = np.matrix(b)*frqz_mtx; return np.array(HH)[0,:], h, ww;    
-    
-
+#    HH = np.matrix(b)*frqz_mtx; return np.array(HH)[0,:], h, ww;  
