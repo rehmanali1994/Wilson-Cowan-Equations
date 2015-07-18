@@ -42,8 +42,8 @@ def WC1Dmain():
     # For Travelling Wave in One Direction:
     # SI = 4 and SE = 6 with travelling wave in one direction
     # produces both a honeycomb and travelling wave
-    u0 = 0.01*np.random.randn((nx))+0.1*np.sin(2*np.pi*xx/L)+0.4; 
-    v0 = 0.01*np.random.randn((nx))+0.1*np.cos(2*np.pi*xx/L)+0.2;
+#    u0 = 0.01*np.random.randn((nx))+0.1*np.sin(2*np.pi*xx/L)+0.4; 
+#    v0 = 0.01*np.random.randn((nx))+0.1*np.cos(2*np.pi*xx/L)+0.2;
     # For Travelling Wave in Opposite Direction:
     #u0 = 0.01*np.random.randn((nx))+0.1*np.cos(2*np.pi*xx/L)+0.4; 
     #v0 = 0.01*np.random.randn((nx))+0.1*np.sin(2*np.pi*xx/L)+0.2;
@@ -58,6 +58,7 @@ def WC1Dmain():
 #    WC1D2 = WilsonCowan1D(filename='test.xlsx');
 #    print("JUST REOPENED FILE INTO NEW OBJECT")
 #    WC1D2.interactiveIO_img();
+    return WC1D
     
 def WC1DmainFFT():
     " CONSTANTS: DO NOT CHANGE! "
@@ -70,7 +71,7 @@ def WC1DmainFFT():
     nx = 2*span + 1; # Number of finite elements in mesh
     dx = L/(nx-1); # Spacing of mesh
     xx = np.linspace(0,L,nx); # the mesh itself
-    dx_kern = 1; # Spacing of Points in the Kernel
+    dx_kern = dx; # Spacing of Points in the Kernel
     SI = 8; TAU = 0.6; # Remaining ODE Parameters SI=8; TAU=0.6
     dt = 0.025; tmore = 10; # Time Step and Initlal Integration Time
     tshow = 10; # Amount of Time Data to Display
@@ -89,22 +90,23 @@ def WC1DmainFFT():
     # For Travelling Wave in One Direction:
     # SI = 4 and SE = 6 with travelling wave in one direction
     # produces both a honeycomb and travelling wave
-#    u0 = 0.01*np.random.randn((nx))+0.05*np.sin(2*np.pi*xx/L)+0.4; 
-#    v0 = 0.01*np.random.randn((nx))+0.05*np.cos(2*np.pi*xx/L)+0.2;
+#    u0 = 0.01*np.random.randn((nx))+0.1*np.sin(2*np.pi*xx/L)+0.4; 
+#    v0 = 0.01*np.random.randn((nx))+0.1*np.cos(2*np.pi*xx/L)+0.2;
     # For Travelling Wave in Opposite Direction:
-    u0 = 0.01*np.random.randn((nx))+0.1*np.cos(2*np.pi*xx/L)+0.4; 
-    v0 = 0.01*np.random.randn((nx))+0.1*np.sin(2*np.pi*xx/L)+0.2;
+#    u0 = 0.01*np.random.randn((nx))+0.1*np.cos(2*np.pi*xx/L)+0.4; 
+#    v0 = 0.01*np.random.randn((nx))+0.1*np.sin(2*np.pi*xx/L)+0.2;
     # For Standing Wave (AKA: Honeycomb)
-#    u0 = 0.1*np.random.randn((nx))+0.41; 
-#    v0 = 0.1*np.random.randn((nx))+0.21;
+    u0 = 0.01*np.random.randn((nx))+0.41; 
+    v0 = 0.01*np.random.randn((nx))+0.21;
     t0 = 0; WC1D.setInitConds(t0,u0,v0,tmore=tmore,tshow=tshow);
-#    WC1D.interactiveIO_img();
-    WC1D.interactiveIO_anim();
+    WC1D.interactiveIO_img();
+#    WC1D.interactiveIO_anim();
 #    WC1D.interactiveIO_animX();
 #    WC1D.interactiveIO_animT();
 #    WC1D2 = WilsonCowan1D(filename='test.xlsx');
 #    print("JUST REOPENED FILE INTO NEW OBJECT")
 #    WC1D2.interactiveIO_img();
+    return WC1D;
     
 def WC2Dmain():
     " Defining ODE Parameters "
@@ -117,7 +119,7 @@ def WC2Dmain():
     span = 15; # Point to Left and Right of Central Maximum in 1D Kernel
     span_x = span; span_y = span; # Same thing but for the 2D Kernel
     dx_kern = 1; dy_kern = 1; # Spacing of Points in the Kernel
-    SI = 4; TAU = 0.43; # Remaining ODE Parameters
+    SI = 4; TAU = 0.5; # Remaining ODE Parameters
     dt = 0.1; tmore = 10; # Time Step and Initlal Integration Time
     tshow = 10; # Amount of Time Data to Display
     kernType='Gaussian' # 'Gaussian' or 'Exponential'
@@ -164,6 +166,7 @@ def WC2Dmain():
     #WC2D.interactiveIO_anim_2D_mesh();
     #WC2D.interactiveIO_anim_pltT();
     #WC2D.interactiveIO_anim_vs_T();
+    return WC2D
     
 def WC2DmainFFT():
     " Defining ODE Parameters "
@@ -172,18 +175,18 @@ def WC2DmainFFT():
     #xx = np.linspace(0,L,nx); # the x-component of the mesh 
     #yy = np.linspace(0,L,ny); # the y-component of the mesh
     #XX, YY = np.meshgrid(xx, yy); # the complete 2D mesh
-    span = 150; # Point to Left and Right of Central Maximum in 1D Kernel
+    span = 170; # Point to Left and Right of Central Maximum in 1D Kernel
     span_x = span; span_y = span; # Same thing but for the 2D Kernel
     n = 2*span+1; nx = n; ny = n; # Spaces in mesh
-    dx_kern = 1; dy_kern = 1; # Spacing of Points in the Kernel
-    SI = 10; TAU = 0.6; # Remaining ODE Parameters
+    dx_kern = L/span; dy_kern = L/span; # Spacing of Points in the Kernel
+    SI = 2; TAU = 0.5; # Remaining ODE Parameters
     dt = 0.1; tmore = 10; # Time Step and Initlal Integration Time
     tshow = 10; # Amount of Time Data to Display
-    kernType='Gaussian' # 'Gaussian' or 'Exponential'
-    mode = 'wrap'; #'wrap' for periodic boundary, 'reflect' for reflecting boundary
+    kernType='Exponential' # 'Gaussian' or 'Exponential'
+    mode = 'reflect'; #'wrap' for periodic boundary, 'reflect' for reflecting boundary
     
     " CONSTANTS: DO NOT CHANGE! "
-    BETA = 50; TE = 0.125; TI = 0.4; SE = 15;
+    BETA = 50; TE = 0.125; TI = 0.4; SE = 3;
     AEE = 1;  AIE = 1; AEI = 1.5; AII = 0.25;
     
     " Creating the WilsonCowan2D object "
@@ -191,7 +194,8 @@ def WC2DmainFFT():
                'AEI':AEI, 'AII':AII, 'Lx':Lx, 'Ly':Ly, 'span_x':span_x, 
                'span_y':span_y, 'dx_kern':dx_kern, 'dy_kern':dy_kern,
                'SI':SI, 'TAU': TAU, 'dt':dt, 'kernType':kernType, 'mode':mode};
-    WC2D = WilsonCowan2D_FFT(pardict=pardict); XX = WC2D.XMesh; YY = WC2D.YMesh; 
+    WC2D = WilsonCowan2D_FFT(pardict=pardict); 
+    XX = WC2D.XMesh; YY = WC2D.YMesh; WC2D.aspectRatio = 20;
     
     " Initial Conditions for ODE "
     # For Synchronous Solution:
@@ -220,9 +224,41 @@ def WC2DmainFFT():
     #WC2D.interactiveIO_img_2D_mesh()
     #print('3D Plotting/Animation Coming Up ...')
     WC2D.interactiveIO_img_3D()
+    WC2DFromLast = WilsonCowan2D_FFT(pardict=pardict);
+    uvals = WC2D.yvals[0:(WC2D.nx*WC2D.ny),:]; 
+    vvals = WC2D.yvals[(WC2D.nx*WC2D.ny):(2*WC2D.nx*WC2D.ny),:]
+    uvals = np.reshape(uvals,(WC2D.ny,WC2D.nx,WC2D.tvals.size)); 
+    vvals = np.reshape(vvals,(WC2D.ny,WC2D.nx,WC2D.tvals.size));
+    WC2DFromLast.setInitConds(t0,uvals[:,:,-1],vvals[:,:,-1],tmore=tmore,tshow=tshow);
+    WC2DFromLast.interactiveIO_img_3D();
     #WC2D.interactiveIO_anim_2D_mesh();
     #WC2D.interactiveIO_anim_pltT();
     #WC2D.interactiveIO_anim_vs_T();
+    return WC2D
+    
+def WC2DFFTresume(filename,dt,tmore,tshow):
+    WClast = WilsonCowan2D_FFT(filename=filename);
+    print("Saved Data Loaded ...")
+    " Creating the WilsonCowan2D object "
+    pardict = {'BETA':WClast.BETA,'TE':WClast.TE,'TI':WClast.TI,'SE':WClast.SE, 
+               'AEE': WClast.AEE, 'AIE':WClast.AIE,'AEI':WClast.AEI,'AII':WClast.AII, 
+               'Lx':WClast.Lx,'Ly':WClast.Ly,'span_x':WClast.span_x,'span_y':WClast.span_y, 
+               'dx_kern':WClast.dx_kern, 'dy_kern':WClast.dy_kern,
+               'SI':WClast.SI,'TAU':WClast.TAU,'dt':dt,
+               'kernType':WClast.kernType, 'mode':WClast.mode};
+    WC2D = WilsonCowan2D_FFT(pardict=pardict); 
+    XX = WC2D.XMesh; YY = WC2D.YMesh; WC2D.aspectRatio = 10;
+    uvals = WClast.yvals[0:(WClast.nx*WClast.ny),:]; 
+    vvals = WClast.yvals[(WClast.nx*WClast.ny):(2*WClast.nx*WClast.ny),:]
+    uvals = np.reshape(uvals,(WClast.ny,WClast.nx,WClast.tvals.size)); 
+    vvals = np.reshape(vvals,(WClast.ny,WClast.nx,WClast.tvals.size));
+    WC2D.setInitConds(0,uvals[:,:,-1],vvals[:,:,-1],tmore=tmore,tshow=tshow);
+    print("Final Conditions from Saved Data made into Initial Conditions of New Simulation");
+    WC2D.interactiveIO_img_3D();
+    return WC2D
+    
+    
+    
 
 #def fft1Dconv(x,kern,mode):
 #    if mode == 'wrap':
@@ -250,7 +286,6 @@ def WC2DmainFFT():
 #        kern_zeropads = np.concatenate((zeropadsUD,kern_zeropadsLR,zeropadsUD));
 #        raw_conv = fft2Dconv(x_withreflects,kern_zeropads,'wrap');
 #        return raw_conv[kern.shape[0]:(2*kern.shape[0]),kern.shape[1]:(2*kern.shape[1])];
-
 #c = np.random.randn(1001); d = np.random.randn(1001);
 #init_t = time.time(); h2 = fft1Dconv(c,d,mode='wrap'); time.time()-init_t
 #init_t = time.time(); h1 = conv(c,d,mode='wrap'); time.time()-init_t
@@ -261,7 +296,17 @@ def WC2DmainFFT():
 #init_t = time.time(); h1 = conv(a,b,mode='wrap'); time.time()-init_t
 #init_t = time.time(); h2 = fft2Dconv(a,b,mode='reflect'); time.time()-init_t
 #init_t = time.time(); h1 = conv(a,b,mode='reflect'); time.time()-init_t
-#WC1Dmain();
-#WC2Dmain();
-#WC1DmainFFT();
-WC2DmainFFT();
+
+#WC1D = WC1Dmain();
+#WC2D = WC2Dmain();
+WC1D = WC1DmainFFT();
+#WC2D = WC2DmainFFT();
+#WC2D = WC2DFFTresume('NoPatFormFFT1.xlsx',0.025,5,5)
+
+#" WAVE SPEED CODE "
+#uvals = WC1D.yvals[0:WC1D.nx,:];
+#vvals = WC1D.yvals[WC1D.nx:(2*WC1D.nx),:];
+#tindex_start = 2280; time_steps = 30
+#x1 = WC1D.dx*np.argmax(uvals[:,tindex_start]);
+#x2 = WC1D.dx*np.argmax(uvals[:,(tindex_start+time_steps)]);
+#speed = (x2-x1)/(time_steps*WC1D.dt);

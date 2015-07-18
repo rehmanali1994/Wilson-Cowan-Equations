@@ -166,7 +166,7 @@ class WilsonCowan1D:
         plt.plot(xmesh,uvals[:,-1],'r',label='Excitatory Firing [u]');
         plt.plot(xmesh,vvals[:,-1],'b',label='Inhibitory Firing [v]');
         plt.xlabel('Spatial Variable [x]'); plt.ylabel('Firing Activity'); 
-        plt.title('Spatial Firing Profiles'); plt.legend();
+        plt.title('Spatial Firing Profiles'); plt.legend(framealpha=0);
         plt.subplot(1,2,2); plt.plot(uvals[:,-1],vvals[:,-1],'k');
         plt.xlabel('Excitatory Firing [u]');
         plt.ylabel('Inhibitory Firing [v]');
@@ -178,7 +178,7 @@ class WilsonCowan1D:
         plt.plot(tvals,uvals[index,:],'r',label='Excitatory Firing [u]');
         plt.plot(tvals,vvals[index,:],'b',label='Inhibitory Firing [v]');
         plt.xlabel('Time [t]'); plt.ylabel('Firing Activity'); 
-        plt.title('Firing Profiles Over Time'); plt.legend();
+        plt.title('Firing Profiles Over Time'); plt.legend(framealpha=0);
         plt.subplot(1,2,2); plt.plot(uvals[index,:],vvals[index,:],'k');
         plt.xlabel('Excitatory Firing [u]');
         plt.ylabel('Inhibitory Firing [v]');
@@ -238,7 +238,7 @@ class WilsonCowan1D:
             plt.plot(self.xmesh,vvals[:],'b',label='Inhibitory Firing [v]');
             plt.xlabel('Spatial Variable [x]'); plt.ylabel('Firing Activity'); 
             plt.title('Spatial Firing Profiles at Time [t = '+str(tval)+']'); 
-            plt.legend(); plt.subplot(1,2,2); plt.plot(uvals[:],vvals[:],'k');
+            plt.legend(framealpha=0); plt.subplot(1,2,2); plt.plot(uvals[:],vvals[:],'k');
             plt.xlabel('Excitatory Firing [u]'); plt.ylabel('Inhibitory Firing [v]');
             plt.title('Spatial Firing Phase Diagram at Time [t = '+str(tval)+']'); 
             plt.subplots_adjust(wspace = 0.4); 
@@ -255,7 +255,7 @@ class WilsonCowan1D:
             plt.plot(tvals,uvals[index,:],'r',label='Excitatory Firing [u]');
             plt.plot(tvals,vvals[index,:],'b',label='Inhibitory Firing [v]');
             plt.xlabel('Time [t]'); plt.ylabel('Firing Activity'); 
-            plt.title('Firing Profiles Over Time'); plt.legend();
+            plt.title('Firing Profiles Over Time'); plt.legend(framealpha=0);
             plt.subplot(1,2,2); plt.plot(uvals[index,:],vvals[index,:],'k');
             plt.xlabel('Excitatory Firing [u]');
             plt.ylabel('Inhibitory Firing [v]');
@@ -278,6 +278,21 @@ class WilsonCowan1D:
             'span':self.span,'dx_kern':self.dx_kern,'mode':self.mode,
             'kernType':self.kernType,'dt':self.dt},index = ['Parameters']);
         paramsDF.to_excel(writer,'params');
+        
+    " Clearing all integration history and reinitialize to final values in last integration "
+    def refreshFromLast(self,dt=None,tmore=tmore_default,tshow=tshow_default):
+        if dt == None: dt = self.dt
+        " Creating the WilsonCowan2D object "
+        pardict = {'BETA':self.BETA,'TE':self.TE,'TI':self.TI,'SE':self.SE, 
+                   'AEE':self.AEE,'AIE':self.AIE,'AEI':self.AEI,'AII':self.AII, 
+                   'L':self.L,'nx':self.nx,'span':self.span,
+                   'dx_kern':self.dx_kern,'SI':self.SI,'TAU':self.TAU,
+                   'dt':dt,'kernType':self.kernType,'mode':self.mode};
+        WC1D = WilsonCowan1D(pardict=pardict); 
+        uvals = self.yvals[0:(self.nx),:]; vvals = self.yvals[(self.nx):(2*self.nx),:]
+        WC1D.setInitConds(0,uvals[:,-1],vvals[:,-1],tmore=tmore,tshow=tshow);
+        print("Final Conditions from Saved Data made into Initial Conditions of New Simulation");
+        return WC1D
     
     " Interactive real-time plotting by I/O dialog  "
     def interactiveIO_img(self,pltType=0):
@@ -467,7 +482,7 @@ class WilsonCowan1D:
         plt.plot(w,kerFTanalytical,'r', label = 'Continuous-Space Fourier Transform')
         plt.plot(w,kerFTnumerical,'b', label = 'Discrete-Space Fourier Transform');
         plt.xlabel('Spatial Frequency [Inverse Length]');
-        plt.ylabel('Fourier Amplitude'); plt.legend(); plt.show();
+        plt.ylabel('Fourier Amplitude'); plt.legend(framealpha=0); plt.show();
     # Example Code for this (WC1D is a WilsonCowan1D object):
     # WC1D.compareFTs(0.1,2*np.pi,501,25,3)
     # WC1D.compareFTs(0.1,2*np.pi,400,60,2)
@@ -773,7 +788,7 @@ class WilsonCowan2D:
         plt.plot(tvals,uvals,'r',label='Excitatory Firing [u]');
         plt.plot(tvals,vvals,'b',label='Inhibitory Firing [v]');
         plt.xlabel('Time [t]'); plt.ylabel('Firing Activity'); 
-        plt.title('Firing Profiles Over Time'); plt.legend();
+        plt.title('Firing Profiles Over Time'); plt.legend(framealpha=0);
         plt.subplot(1,2,2); plt.plot(uvals,vvals,'k');
         plt.xlabel('Excitatory Firing [u]');
         plt.ylabel('Inhibitory Firing [v]');
@@ -895,7 +910,7 @@ class WilsonCowan2D:
             plt.plot(tvals,uvals,'r',label='Excitatory Firing [u]');
             plt.plot(tvals,vvals,'b',label='Inhibitory Firing [v]');
             plt.xlabel('Time [t]'); plt.ylabel('Firing Activity'); 
-            plt.title('Firing Profiles Over Time'); plt.legend();
+            plt.title('Firing Profiles Over Time'); plt.legend(framealpha=0);
             plt.subplot(1,2,2); plt.plot(uvals,vvals,'k');
             plt.xlabel('Excitatory Firing [u]');
             plt.ylabel('Inhibitory Firing [v]');
@@ -931,6 +946,26 @@ class WilsonCowan2D:
             'dx_kern':self.dx_kern,'dy_kern':self.dy_kern,'dt':self.dt,
             'Lx':self.Lx,'Ly':self.Ly,'nx':self.nx,'ny':self.ny},index=['Parameters']);
         paramsDF.to_excel(writer,'params'); 
+        
+        " Clearing all integration history and reinitialize to final values in last integration "
+    def refreshFromLast(self,dt=None,tmore=tmore_default,tshow=tshow_default):
+        if dt == None: dt = self.dt
+        " Creating the WilsonCowan2D object "
+        pardict = {'BETA':self.BETA,'TE':self.TE,'TI':self.TI,'SE':self.SE, 
+                   'AEE': self.AEE,'AIE':self.AIE,'AEI':self.AEI,'AII':self.AII, 
+                   'Lx':self.Lx,'Ly':self.Ly,'nx':self.nx,'ny':self.ny, 
+                   'span_x':self.span_x,'span_y':self.span_y, 
+                   'dx_kern':self.dx_kern,'dy_kern':self.dy_kern,
+                   'SI':self.SI,'TAU':self.TAU,'dt':dt, 
+                   'kernType':self.kernType, 'mode':self.mode};
+        WC2D = WilsonCowan2D(pardict=pardict); 
+        uvals = self.yvals[0:(self.nx*self.ny),:]; 
+        vvals = self.yvals[(self.nx*self.ny):(2*self.nx*self.ny),:]
+        uvals = np.reshape(uvals,(self.ny,self.nx,self.tvals.size)); 
+        vvals = np.reshape(vvals,(self.ny,self.nx,self.tvals.size));
+        WC2D.setInitConds(0,uvals[:,:,-1],vvals[:,:,-1],tmore=tmore,tshow=tshow);
+        print("Final Conditions from Saved Data made into Initial Conditions of New Simulation");
+        return WC2D
     
     " Interactive real-time plotting by I/O dialog  "
     def interactiveIO_img_3D(self): 
@@ -1274,7 +1309,7 @@ class WilsonCowan2D:
         ax.set_xlabel('Spatial Frequency [Inverse Length] /nin X Direction');
         ax.set_ylabel('Spatial Frequency [Inverse Length] /nin Y Direction');
         ax.set_zlabel('Fourier Amplitude')
-        plt.legend(); plt.show(); return ww, kerFT, ker, diff;    
+        plt.legend(framealpha=0); plt.show(); return ww, kerFT, ker, diff;    
     # Example Code for this:
     # ww, kerFT, ker, diff = compareFTs(0.05,(4,4),(90,90),(90,90),(90,90),(2,2))
     # ww, kerFT, ker, diff = compareFTs(0.1,(4,4),(100,100),(200,200),(50,50),(3,3))
