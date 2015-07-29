@@ -77,6 +77,12 @@ class WilsonCowan1D_FFT:
             self.WCSystem = ode(self.WilsonCowanODE).set_integrator('dopri');
             self.WCSystem.set_initial_value(self.yvals[:,-1],self.tvals[-1]);
         else: raise Exception('Must specify filename or pardict but not both');
+        
+    " Retriving uvals and vvals after integration "
+    def getVals(self):
+        uvals = self.yvals[0:self.nx,:]; 
+        vvals = self.yvals[self.nx:(2*self.nx),:];
+        return uvals, vvals
             
     " Must Set Initial Conditions before Integration (WilsonCowanIntegrator) "    
     def setInitConds(self,t0,u0,v0,tmore=tmore_default,tshow=tshow_default,twin=twin_default):
@@ -568,19 +574,19 @@ class WilsonCowan2D_FFT:
             self.WCSystem.set_initial_value(self.yvals[:,-1],self.tvals[-1]);
         else: raise Exception('Must specify filename or pardict but not both');
     
+    " Retriving uvals and vvals after integration "
+    def getVals(self):
+        uvals = self.yvals[0:(self.nx*self.ny),:]; 
+        vvals = self.yvals[(self.nx*self.ny):(2*self.nx*self.ny),:]
+        uvals = np.reshape(uvals,(self.ny,self.nx,self.tvals.size)); 
+        vvals = np.reshape(vvals,(self.ny,self.nx,self.tvals.size));
+        return uvals, vvals     
+    
     " Must Set Initial Conditions before Integration (WilsonCowanIntegrator) "    
     def setInitConds(self,t0,u0,v0,tmore=tmore_default,tshow=tshow_default,twin=twin_default):
         uu0 = np.reshape(u0,self.nx*self.ny); vv0 = np.reshape(v0,self.nx*self.ny)
         self.yy0 = np.concatenate((uu0,vv0)); self.t0 = t0; self.twin = twin
         self.tmore = tmore; self.tshow = tshow;
-        
-#    kerE = self.kern(self.SE,self.span,self.dx_kern); 
-#    kerI = self.kern(self.SI,self.span,self.dx_kern);
-#    Lu = self.AEE*conv(u,kerE,mode=self.mode)-  \
-#        self.AEI*conv(v,kerI,mode=self.mode)-self.TE;
-#    Lv = self.AIE*conv(u,kerE,mode=self.mode)-  \
-#        self.AII*conv(v,kerI,mode=self.mode)-self.TI;
-#    du = -u + self.f(Lu); dv = (-v + self.f(Lv))/(self.TAU);
     
     " Defining the Wilson Cowan Equations "
     def WilsonCowanODE(self,t,y):

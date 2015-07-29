@@ -61,6 +61,23 @@ def WC1Dmain():
     return WC1D
     
 def WC1DmainFFT():
+#    " CONSTANTS: DO NOT CHANGE! "
+#    BETA = 15; TE = 0.25; TI = 0.55; SE = 45; #TE=0.125
+#    AEE = 1;  AIE = 1; AEI = 1.5; AII = 0.25;
+#    
+#    " Defining ODE Parameters "
+#    L = 400; # Length of mesh
+#    span = 200; # Point to Left and Right of Central Maximum in Kernel
+#    nx = 2*span + 1; # Number of finite elements in mesh
+#    dx = L/(nx-1); # Spacing of mesh
+#    xx = np.linspace(0,L,nx); # the mesh itself
+#    dx_kern = dx; # Spacing of Points in the Kernel
+#    SI = 30; TAU = 0.80; # Remaining ODE Parameters SI=8; TAU=0.6
+#    dt = 0.025; tmore = 10; # Time Step and Initlal Integration Time
+#    tshow = 10; # Amount of Time Data to Display
+#    kernType='Gaussian' # 'Gaussian' or 'Exponential'
+#    mode = 'wrap'; #'wrap' for periodic boundary, 'reflect' for reflecting boundary
+    
     " CONSTANTS: DO NOT CHANGE! "
     BETA = 50; TE = 0.125; TI = 0.4; SE = 12; #TE=0.125
     AEE = 1;  AIE = 1; AEI = 1.5; AII = 0.25;
@@ -99,8 +116,8 @@ def WC1DmainFFT():
     u0 = 0.01*np.random.randn((nx))+0.41; 
     v0 = 0.01*np.random.randn((nx))+0.21;
     t0 = 0; WC1D.setInitConds(t0,u0,v0,tmore=tmore,tshow=tshow);
-    WC1D.interactiveIO_img();
-#    WC1D.interactiveIO_anim();
+#    WC1D.interactiveIO_img();
+    WC1D.interactiveIO_anim();
 #    WC1D.interactiveIO_animX();
 #    WC1D.interactiveIO_animT();
 #    WC1D2 = WilsonCowan1D(filename='test.xlsx');
